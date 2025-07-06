@@ -1,0 +1,413 @@
+use bevy::prelude::*;
+use bevy_ecs_tilemap::prelude::*;
+use bevy_rapier2d::prelude::*;
+
+const GRID_SIZE: f32 = 32.0;
+const TILE_SIZE: TilemapTileSize = TilemapTileSize {
+    x: GRID_SIZE,
+    y: GRID_SIZE,
+};
+const MAP_SIZE: TilemapSize = TilemapSize { x: 40, y: 20 };
+
+// Notes
+// X: 0 Is left
+// Y: 0 Is bottom
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum CondoTileTextureIndex {
+    ConcreteFloor = 372,
+    Grass = 393,
+    UpStairs = 351,
+    UpperFloorFront = 352,
+    UpperFloor = 330,
+    MiddleWall = 233,
+    LowerWall = 254,
+    LowerWindow = 262,
+    MiddleWinow = 241,
+    UpperWindow = 220,
+    BloodStain1 = 407,
+    BloodStain2 = 408,
+    BloodStain3 = 409,
+    BloodStain4 = 430,
+    BloodStain5 = 452,
+    BloodStain6 = 473,
+    BloodStain7 = 453,
+}
+
+#[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
+pub struct CondoClosedDoorEntering(pub bool);
+
+pub fn draw_condo_entering_tiles(mut commands: Commands, asset_server: Res<AssetServer>) {
+    let texture_handle: Handle<Image> = asset_server.load("tileset/condo/condo_1.png");
+    let tilemap_entity = commands.spawn_empty().id();
+    let mut tile_storage = TileStorage::empty(MAP_SIZE);
+
+    // Concrete Floor
+    draw_2d_area(
+        &mut commands,
+        tilemap_entity,
+        &mut tile_storage,
+        TileTextureIndex(CondoTileTextureIndex::ConcreteFloor as u32),
+        (0, MAP_SIZE.x, 0, MAP_SIZE.y),
+    );
+
+    // Grass
+    draw_2d_area(
+        &mut commands,
+        tilemap_entity,
+        &mut tile_storage,
+        TileTextureIndex(CondoTileTextureIndex::Grass as u32),
+        (MAP_SIZE.x - 33, MAP_SIZE.x, 0, MAP_SIZE.y - 14),
+    );
+
+    // Up Stairs
+    draw_y_fixed_area(
+        &mut commands,
+        tilemap_entity,
+        &mut tile_storage,
+        TileTextureIndex(CondoTileTextureIndex::UpStairs as u32),
+        (0, MAP_SIZE.x - 33, MAP_SIZE.y - 7),
+    );
+
+    // Front of Upper Floor 1
+    draw_y_fixed_area(
+        &mut commands,
+        tilemap_entity,
+        &mut tile_storage,
+        TileTextureIndex(CondoTileTextureIndex::UpperFloorFront as u32),
+        (MAP_SIZE.x - 33, MAP_SIZE.x - 11, MAP_SIZE.y - 8),
+    );
+
+    commands
+        .spawn(Collider::cuboid(
+            (GRID_SIZE * 22.) / 2.,
+            (GRID_SIZE - 10.) / 2.,
+        ))
+        .insert(Transform::from_xyz(-GRID_SIZE * 2., GRID_SIZE * 2.7, 10.0));
+
+    commands
+        .spawn(Collider::cuboid(2., (GRID_SIZE + 10.) / 2.))
+        .insert(Transform::from_xyz(-GRID_SIZE * 13., GRID_SIZE * 3.0, 10.0));
+
+    // Front of Upper Floor 2
+    draw_y_fixed_area(
+        &mut commands,
+        tilemap_entity,
+        &mut tile_storage,
+        TileTextureIndex(CondoTileTextureIndex::UpperFloorFront as u32),
+        (MAP_SIZE.x - 11, MAP_SIZE.x, MAP_SIZE.y - 9),
+    );
+
+    commands
+        .spawn(Collider::cuboid(
+            (GRID_SIZE * 11.) / 2.,
+            (GRID_SIZE - 10.) / 2.,
+        ))
+        .insert(Transform::from_xyz(GRID_SIZE * 14.5, GRID_SIZE * 1.7, 10.0));
+
+    commands
+        .spawn(Collider::cuboid(2., GRID_SIZE / 2.))
+        .insert(Transform::from_xyz(GRID_SIZE * 9., GRID_SIZE * 2.0, 10.0));
+
+    // Upper Floor 1
+    draw_2d_area(
+        &mut commands,
+        tilemap_entity,
+        &mut tile_storage,
+        TileTextureIndex(CondoTileTextureIndex::UpperFloor as u32),
+        (0, MAP_SIZE.x, MAP_SIZE.y - 6, MAP_SIZE.y),
+    );
+
+    // Upper Floor 2
+    draw_y_fixed_area(
+        &mut commands,
+        tilemap_entity,
+        &mut tile_storage,
+        TileTextureIndex(CondoTileTextureIndex::UpperFloor as u32),
+        (MAP_SIZE.x - 33, MAP_SIZE.x, MAP_SIZE.y - 7),
+    );
+
+    // Upper Floor 3
+    draw_y_fixed_area(
+        &mut commands,
+        tilemap_entity,
+        &mut tile_storage,
+        TileTextureIndex(CondoTileTextureIndex::UpperFloor as u32),
+        (MAP_SIZE.x - 11, MAP_SIZE.x, MAP_SIZE.y - 8),
+    );
+
+    // Upper Wall
+    draw_2d_area(
+        &mut commands,
+        tilemap_entity,
+        &mut tile_storage,
+        TileTextureIndex(CondoTileTextureIndex::MiddleWall as u32),
+        (0, MAP_SIZE.x, MAP_SIZE.y - 3, MAP_SIZE.y),
+    );
+
+    // Lower Wall
+    draw_y_fixed_area(
+        &mut commands,
+        tilemap_entity,
+        &mut tile_storage,
+        TileTextureIndex(CondoTileTextureIndex::LowerWall as u32),
+        (0, MAP_SIZE.x, MAP_SIZE.y - 4),
+    );
+
+    commands
+        .spawn(Collider::cuboid(
+            (GRID_SIZE * MAP_SIZE.x as f32) / 2.,
+            GRID_SIZE / 2.,
+        ))
+        .insert(Transform::from_xyz(0., 6.8 * GRID_SIZE, 8.0));
+
+    // Lower Window
+    draw_windows(
+        &mut commands,
+        tilemap_entity,
+        &mut tile_storage,
+        (
+            TileTextureIndex(CondoTileTextureIndex::LowerWindow as u32),
+            TileTextureIndex(CondoTileTextureIndex::MiddleWinow as u32),
+            TileTextureIndex(CondoTileTextureIndex::UpperWindow as u32),
+        ),
+        (MAP_SIZE.x - 33, MAP_SIZE.x - 3, MAP_SIZE.y - 4),
+    );
+
+    draw_bloodstain(&mut commands, tilemap_entity, &mut tile_storage);
+
+    let grid_size = TILE_SIZE.into();
+    let map_type = TilemapType::default();
+
+    commands.entity(tilemap_entity).insert(TilemapBundle {
+        grid_size,
+        map_type,
+        size: MAP_SIZE,
+        storage: tile_storage,
+        texture: TilemapTexture::Single(texture_handle),
+        tile_size: TILE_SIZE,
+        anchor: TilemapAnchor::Center,
+        ..Default::default()
+    });
+}
+
+fn draw_2d_area(
+    commands: &mut Commands,
+    tilemap_entity: Entity,
+    tile_storage: &mut TileStorage,
+    texture_index: TileTextureIndex,
+    bounds: (u32, u32, u32, u32),
+) {
+    for x in bounds.0..bounds.1 {
+        for y in bounds.2..bounds.3 {
+            let tile_pos = TilePos { x, y };
+            let tile_entity = commands
+                .spawn(TileBundle {
+                    position: tile_pos,
+                    tilemap_id: TilemapId(tilemap_entity),
+                    texture_index,
+                    ..Default::default()
+                })
+                .id();
+            tile_storage.set(&tile_pos, tile_entity);
+        }
+    }
+}
+
+fn draw_y_fixed_area(
+    commands: &mut Commands,
+    tilemap_entity: Entity,
+    tile_storage: &mut TileStorage,
+    texture_index: TileTextureIndex,
+    bounds: (u32, u32, u32),
+) {
+    for x in bounds.0..bounds.1 {
+        let tile_pos = TilePos { x, y: bounds.2 };
+        let tile_entity = commands
+            .spawn(TileBundle {
+                position: tile_pos,
+                tilemap_id: TilemapId(tilemap_entity),
+                texture_index,
+                ..Default::default()
+            })
+            .id();
+        tile_storage.set(&tile_pos, tile_entity);
+    }
+}
+
+fn draw_bloodstain(
+    commands: &mut Commands,
+    tilemap_entity: Entity,
+    tile_storage: &mut TileStorage,
+) {
+    let tiles = [
+        (0, MAP_SIZE.y - 5, CondoTileTextureIndex::BloodStain1),
+        (1, MAP_SIZE.y - 5, CondoTileTextureIndex::BloodStain2),
+        (2, MAP_SIZE.y - 5, CondoTileTextureIndex::BloodStain3),
+        (2, MAP_SIZE.y - 6, CondoTileTextureIndex::BloodStain4),
+        (3, MAP_SIZE.y - 5, CondoTileTextureIndex::BloodStain5),
+        (3, MAP_SIZE.y - 6, CondoTileTextureIndex::BloodStain6),
+        (4, MAP_SIZE.y - 5, CondoTileTextureIndex::BloodStain7),
+    ];
+
+    for (x, y, stain_index) in tiles {
+        let tile_pos = TilePos { x, y };
+        let tile_entity = commands
+            .spawn(TileBundle {
+                position: tile_pos,
+                tilemap_id: TilemapId(tilemap_entity),
+                texture_index: TileTextureIndex(stain_index as u32),
+                ..Default::default()
+            })
+            .id();
+        tile_storage.set(&tile_pos, tile_entity);
+    }
+}
+
+fn draw_windows(
+    commands: &mut Commands,
+    tilemap_entity: Entity,
+    tile_storage: &mut TileStorage,
+    window_texture_index: (TileTextureIndex, TileTextureIndex, TileTextureIndex),
+    bounds: (u32, u32, u32),
+) {
+    let offset = 4;
+    let mut x = bounds.0;
+
+    while x < bounds.1 {
+        // Lower Window
+        for i in 0..2 {
+            let tile_pos = TilePos {
+                x: x + i,
+                y: bounds.2,
+            };
+
+            let tile_entity = commands
+                .spawn(TileBundle {
+                    position: tile_pos,
+                    tilemap_id: TilemapId(tilemap_entity),
+                    texture_index: window_texture_index.0,
+                    ..Default::default()
+                })
+                .id();
+            tile_storage.set(&tile_pos, tile_entity);
+        }
+
+        // Middle Window
+        for i in 0..2 {
+            let tile_pos = TilePos {
+                x: x + i,
+                y: bounds.2 + 1,
+            };
+
+            let tile_entity = commands
+                .spawn(TileBundle {
+                    position: tile_pos,
+                    tilemap_id: TilemapId(tilemap_entity),
+                    texture_index: window_texture_index.1,
+                    ..Default::default()
+                })
+                .id();
+            tile_storage.set(&tile_pos, tile_entity);
+        }
+
+        // Upper Window
+        for i in 0..2 {
+            let tile_pos = TilePos {
+                x: x + i,
+                y: bounds.2 + 2,
+            };
+
+            let tile_entity = commands
+                .spawn(TileBundle {
+                    position: tile_pos,
+                    tilemap_id: TilemapId(tilemap_entity),
+                    texture_index: window_texture_index.2,
+                    ..Default::default()
+                })
+                .id();
+            tile_storage.set(&tile_pos, tile_entity);
+        }
+
+        x += offset;
+    }
+}
+
+pub fn draw_condo_entering_door(mut commands: Commands, asset_server: Res<AssetServer>) {
+    let door_image = asset_server.load("tileset/condo/double_door_closed.png");
+    let height_adjust = 5. * (GRID_SIZE / 16.);
+    let x_collider = 38. * (GRID_SIZE / 16.) / 2.;
+    let y_collider = 33. * (GRID_SIZE / 16.) / 2.;
+
+    commands
+        .spawn((
+            Collider::cuboid(x_collider, y_collider),
+            CondoClosedDoorEntering(true),
+            Sprite::from_image(door_image),
+        ))
+        .insert(Transform::from_xyz(
+            -(17. * GRID_SIZE as f32),
+            (7. * GRID_SIZE as f32) + height_adjust,
+            10.0,
+        ));
+}
+
+pub fn draw_trees(mut commands: Commands, asset_server: Res<AssetServer>) {
+    let tree_image = asset_server.load("tileset/condo/tree_1.png");
+    let tree_positions = [
+        (-GRID_SIZE * 1., -GRID_SIZE * 7.),
+        (-GRID_SIZE * 10., -GRID_SIZE * 6.),
+        (GRID_SIZE * 6., -GRID_SIZE * 8.5),
+        (GRID_SIZE * 13., -GRID_SIZE * 7.),
+        (GRID_SIZE * 18., -GRID_SIZE * 8.5),
+    ];
+
+    for (x, y) in tree_positions {
+        commands.spawn((
+            Transform::from_xyz(x, y, 10.0),
+            Sprite::from_image(tree_image.to_owned()),
+        ));
+    }
+
+    // Colliders
+    let x_collider = 10. * (GRID_SIZE / 16.) / 2.;
+    let y_collider = 2. * (GRID_SIZE / 16.) / 2.;
+
+    for (x, y) in tree_positions {
+        commands
+            .spawn((Collider::cuboid(x_collider, y_collider),))
+            .insert(Transform::from_xyz(x, y - 45., 10.0));
+    }
+}
+
+pub fn draw_lamps(mut commands: Commands, asset_server: Res<AssetServer>) {
+    let lamp_image = asset_server.load("tileset/condo/lamp_1.png");
+    let offset = 7.5 * GRID_SIZE;
+    let y_position = -GRID_SIZE * 3.5;
+
+    let lamp_positions = [
+        // Left
+        (-GRID_SIZE * 4. - offset, y_position),
+        (-GRID_SIZE * 4., y_position),
+        // Right
+        (GRID_SIZE * 4., y_position),
+        (GRID_SIZE * 4. + offset, y_position),
+        (GRID_SIZE * 4. + (offset * 2.), y_position),
+    ];
+
+    for (x, y) in lamp_positions {
+        commands
+            .spawn((Sprite::from_image(lamp_image.to_owned()),))
+            .insert(Transform::from_xyz(x, y, 10.0));
+    }
+
+    // Colliders
+    let x_collider = 10. * (GRID_SIZE / 16.) / 2.;
+    let y_collider = 2. * (GRID_SIZE / 16.) / 2.;
+
+    for (x, y) in lamp_positions {
+        commands
+            .spawn((Collider::cuboid(x_collider, y_collider),))
+            .insert(Transform::from_xyz(x, y - 45., 10.0));
+    }
+}
