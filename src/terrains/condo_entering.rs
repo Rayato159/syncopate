@@ -2,26 +2,10 @@ use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-const GRID_SIZE: f32 = 32.0;
-const TILE_SIZE: TilemapTileSize = TilemapTileSize {
-    x: GRID_SIZE,
-    y: GRID_SIZE,
-};
-const MAP_SIZE: TilemapSize = TilemapSize { x: 40, y: 20 };
-
-// Notes
-// X: 0 Is left
-// Y: 0 Is bottom
+use crate::terrains::{GRID_SIZE, MAP_SIZE, TILE_SIZE};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-enum CondoTileTextureIndex {
-    ConcreteFloor = 372,
-    Grass = 393,
-    UpStairs = 351,
-    UpperFloorFront = 352,
-    UpperFloor = 330,
-    MiddleWall = 233,
-    LowerWall = 254,
+enum TextureIndex {
     LowerWindow = 262,
     MiddleWinow = 241,
     UpperWindow = 220,
@@ -37,67 +21,60 @@ enum CondoTileTextureIndex {
 #[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
 pub struct CondoClosedDoorEntering(pub bool);
 
-pub fn draw_condo_entering_tiles(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let texture_handle: Handle<Image> = asset_server.load("tileset/condo/condo_1.png");
+pub fn draw_terrain(mut commands: Commands, asset_server: Res<AssetServer>) {
+    let scene_image = asset_server.load("tileset/condo/entering/scene.png");
+
+    commands.spawn((
+        Sprite::from_image(scene_image),
+        Transform::from_xyz(0.0, 0.0, 0.0),
+    ));
+
+    // Map bounds
+    let width = GRID_SIZE * MAP_SIZE.x as f32;
+    let height = GRID_SIZE * MAP_SIZE.y as f32;
+    let thickness = 8.;
+
+    // Left
+    commands.spawn((
+        Collider::cuboid(thickness / 2., height / 2.),
+        Transform::from_xyz(-width / 2. - thickness / 2., 0., 5.),
+    ));
+
+    // Right
+    commands.spawn((
+        Collider::cuboid(thickness / 2., height / 2.),
+        Transform::from_xyz(width / 2. + thickness / 2., 0., 5.),
+    ));
+
+    // Bottom
+    commands.spawn((
+        Collider::cuboid(width / 2., thickness / 2.),
+        Transform::from_xyz(0., -height / 2. - thickness / 2., 5.),
+    ));
+
+    // Top
+    commands.spawn((
+        Collider::cuboid(width / 2., thickness / 2.),
+        Transform::from_xyz(0., height / 2. + thickness / 2., 5.),
+    ));
+
+    let texture_handle: Handle<Image> = asset_server.load("tileset/condo/entering/tiles_1.png");
     let tilemap_entity = commands.spawn_empty().id();
     let mut tile_storage = TileStorage::empty(MAP_SIZE);
 
-    // Concrete Floor
-    draw_2d_area(
-        &mut commands,
-        tilemap_entity,
-        &mut tile_storage,
-        TileTextureIndex(CondoTileTextureIndex::ConcreteFloor as u32),
-        (0, MAP_SIZE.x, 0, MAP_SIZE.y),
-    );
-
-    // Grass
-    draw_2d_area(
-        &mut commands,
-        tilemap_entity,
-        &mut tile_storage,
-        TileTextureIndex(CondoTileTextureIndex::Grass as u32),
-        (MAP_SIZE.x - 33, MAP_SIZE.x, 0, MAP_SIZE.y - 14),
-    );
-
-    // Up Stairs
-    draw_y_fixed_area(
-        &mut commands,
-        tilemap_entity,
-        &mut tile_storage,
-        TileTextureIndex(CondoTileTextureIndex::UpStairs as u32),
-        (0, MAP_SIZE.x - 33, MAP_SIZE.y - 7),
-    );
-
     // Front of Upper Floor 1
-    draw_y_fixed_area(
-        &mut commands,
-        tilemap_entity,
-        &mut tile_storage,
-        TileTextureIndex(CondoTileTextureIndex::UpperFloorFront as u32),
-        (MAP_SIZE.x - 33, MAP_SIZE.x - 11, MAP_SIZE.y - 8),
-    );
-
     commands
         .spawn(Collider::cuboid(
             (GRID_SIZE * 22.) / 2.,
             (GRID_SIZE - 10.) / 2.,
         ))
-        .insert(Transform::from_xyz(-GRID_SIZE * 2., GRID_SIZE * 2.7, 10.0));
+        .insert(Transform::from_xyz(-GRID_SIZE * 2., GRID_SIZE * 2.7, 2.0));
 
     commands
         .spawn(Collider::cuboid(2., (GRID_SIZE + 10.) / 2.))
-        .insert(Transform::from_xyz(-GRID_SIZE * 13., GRID_SIZE * 3.0, 10.0));
+        .insert(Transform::from_xyz(-GRID_SIZE * 13., GRID_SIZE * 3.0, 2.0));
 
     // Front of Upper Floor 2
-    draw_y_fixed_area(
-        &mut commands,
-        tilemap_entity,
-        &mut tile_storage,
-        TileTextureIndex(CondoTileTextureIndex::UpperFloorFront as u32),
-        (MAP_SIZE.x - 11, MAP_SIZE.x, MAP_SIZE.y - 9),
-    );
-
     commands
         .spawn(Collider::cuboid(
             (GRID_SIZE * 11.) / 2.,
@@ -107,59 +84,15 @@ pub fn draw_condo_entering_tiles(mut commands: Commands, asset_server: Res<Asset
 
     commands
         .spawn(Collider::cuboid(2., GRID_SIZE / 2.))
-        .insert(Transform::from_xyz(GRID_SIZE * 9., GRID_SIZE * 2.0, 10.0));
+        .insert(Transform::from_xyz(GRID_SIZE * 9., GRID_SIZE * 2.0, 2.0));
 
-    // Upper Floor 1
-    draw_2d_area(
-        &mut commands,
-        tilemap_entity,
-        &mut tile_storage,
-        TileTextureIndex(CondoTileTextureIndex::UpperFloor as u32),
-        (0, MAP_SIZE.x, MAP_SIZE.y - 6, MAP_SIZE.y),
-    );
-
-    // Upper Floor 2
-    draw_y_fixed_area(
-        &mut commands,
-        tilemap_entity,
-        &mut tile_storage,
-        TileTextureIndex(CondoTileTextureIndex::UpperFloor as u32),
-        (MAP_SIZE.x - 33, MAP_SIZE.x, MAP_SIZE.y - 7),
-    );
-
-    // Upper Floor 3
-    draw_y_fixed_area(
-        &mut commands,
-        tilemap_entity,
-        &mut tile_storage,
-        TileTextureIndex(CondoTileTextureIndex::UpperFloor as u32),
-        (MAP_SIZE.x - 11, MAP_SIZE.x, MAP_SIZE.y - 8),
-    );
-
-    // Upper Wall
-    draw_2d_area(
-        &mut commands,
-        tilemap_entity,
-        &mut tile_storage,
-        TileTextureIndex(CondoTileTextureIndex::MiddleWall as u32),
-        (0, MAP_SIZE.x, MAP_SIZE.y - 3, MAP_SIZE.y),
-    );
-
-    // Lower Wall
-    draw_y_fixed_area(
-        &mut commands,
-        tilemap_entity,
-        &mut tile_storage,
-        TileTextureIndex(CondoTileTextureIndex::LowerWall as u32),
-        (0, MAP_SIZE.x, MAP_SIZE.y - 4),
-    );
-
+    // Wall
     commands
         .spawn(Collider::cuboid(
             (GRID_SIZE * MAP_SIZE.x as f32) / 2.,
             GRID_SIZE / 2.,
         ))
-        .insert(Transform::from_xyz(0., 6.8 * GRID_SIZE, 8.0));
+        .insert(Transform::from_xyz(0., 6.8 * GRID_SIZE, 2.0));
 
     // Lower Window
     draw_windows(
@@ -167,9 +100,9 @@ pub fn draw_condo_entering_tiles(mut commands: Commands, asset_server: Res<Asset
         tilemap_entity,
         &mut tile_storage,
         (
-            TileTextureIndex(CondoTileTextureIndex::LowerWindow as u32),
-            TileTextureIndex(CondoTileTextureIndex::MiddleWinow as u32),
-            TileTextureIndex(CondoTileTextureIndex::UpperWindow as u32),
+            TileTextureIndex(TextureIndex::LowerWindow as u32),
+            TileTextureIndex(TextureIndex::MiddleWinow as u32),
+            TileTextureIndex(TextureIndex::UpperWindow as u32),
         ),
         (MAP_SIZE.x - 33, MAP_SIZE.x - 3, MAP_SIZE.y - 4),
     );
@@ -191,63 +124,19 @@ pub fn draw_condo_entering_tiles(mut commands: Commands, asset_server: Res<Asset
     });
 }
 
-fn draw_2d_area(
-    commands: &mut Commands,
-    tilemap_entity: Entity,
-    tile_storage: &mut TileStorage,
-    texture_index: TileTextureIndex,
-    bounds: (u32, u32, u32, u32),
-) {
-    for x in bounds.0..bounds.1 {
-        for y in bounds.2..bounds.3 {
-            let tile_pos = TilePos { x, y };
-            let tile_entity = commands
-                .spawn(TileBundle {
-                    position: tile_pos,
-                    tilemap_id: TilemapId(tilemap_entity),
-                    texture_index,
-                    ..Default::default()
-                })
-                .id();
-            tile_storage.set(&tile_pos, tile_entity);
-        }
-    }
-}
-
-fn draw_y_fixed_area(
-    commands: &mut Commands,
-    tilemap_entity: Entity,
-    tile_storage: &mut TileStorage,
-    texture_index: TileTextureIndex,
-    bounds: (u32, u32, u32),
-) {
-    for x in bounds.0..bounds.1 {
-        let tile_pos = TilePos { x, y: bounds.2 };
-        let tile_entity = commands
-            .spawn(TileBundle {
-                position: tile_pos,
-                tilemap_id: TilemapId(tilemap_entity),
-                texture_index,
-                ..Default::default()
-            })
-            .id();
-        tile_storage.set(&tile_pos, tile_entity);
-    }
-}
-
 fn draw_bloodstain(
     commands: &mut Commands,
     tilemap_entity: Entity,
     tile_storage: &mut TileStorage,
 ) {
     let tiles = [
-        (0, MAP_SIZE.y - 5, CondoTileTextureIndex::BloodStain1),
-        (1, MAP_SIZE.y - 5, CondoTileTextureIndex::BloodStain2),
-        (2, MAP_SIZE.y - 5, CondoTileTextureIndex::BloodStain3),
-        (2, MAP_SIZE.y - 6, CondoTileTextureIndex::BloodStain4),
-        (3, MAP_SIZE.y - 5, CondoTileTextureIndex::BloodStain5),
-        (3, MAP_SIZE.y - 6, CondoTileTextureIndex::BloodStain6),
-        (4, MAP_SIZE.y - 5, CondoTileTextureIndex::BloodStain7),
+        (0, MAP_SIZE.y - 5, TextureIndex::BloodStain1),
+        (1, MAP_SIZE.y - 5, TextureIndex::BloodStain2),
+        (2, MAP_SIZE.y - 5, TextureIndex::BloodStain3),
+        (2, MAP_SIZE.y - 6, TextureIndex::BloodStain4),
+        (3, MAP_SIZE.y - 5, TextureIndex::BloodStain5),
+        (3, MAP_SIZE.y - 6, TextureIndex::BloodStain6),
+        (4, MAP_SIZE.y - 5, TextureIndex::BloodStain7),
     ];
 
     for (x, y, stain_index) in tiles {
@@ -333,8 +222,8 @@ fn draw_windows(
     }
 }
 
-pub fn draw_condo_entering_door(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let door_image = asset_server.load("tileset/condo/double_door_closed.png");
+pub fn draw_entering_door(mut commands: Commands, asset_server: Res<AssetServer>) {
+    let door_image = asset_server.load("tileset/condo/entering/double_door_closed.png");
     let height_adjust = 5. * (GRID_SIZE / 16.);
     let x_collider = 38. * (GRID_SIZE / 16.) / 2.;
     let y_collider = 33. * (GRID_SIZE / 16.) / 2.;
@@ -353,7 +242,7 @@ pub fn draw_condo_entering_door(mut commands: Commands, asset_server: Res<AssetS
 }
 
 pub fn draw_trees(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let tree_image = asset_server.load("tileset/condo/tree_1.png");
+    let tree_image = asset_server.load("tileset/condo/entering/tree_1.png");
     let tree_positions = [
         (-GRID_SIZE * 1., -GRID_SIZE * 7.),
         (-GRID_SIZE * 10., -GRID_SIZE * 6.),
@@ -381,7 +270,7 @@ pub fn draw_trees(mut commands: Commands, asset_server: Res<AssetServer>) {
 }
 
 pub fn draw_lamps(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let lamp_image = asset_server.load("tileset/condo/lamp_1.png");
+    let lamp_image = asset_server.load("tileset/condo/entering/lamp_1.png");
     let offset = 7.5 * GRID_SIZE;
     let y_position = -GRID_SIZE * 3.5;
 
