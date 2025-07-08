@@ -3,6 +3,7 @@ use bevy_aseprite_ultra::prelude::*;
 use bevy_ecs_tilemap::TilemapPlugin;
 use bevy_fps_counter::FpsCounterPlugin;
 use bevy_inspector_egui::bevy_egui::EguiPlugin;
+use bevy_light_2d::prelude::*;
 use bevy_rapier2d::prelude::*;
 use syncopate::{camera, characters::thunwa, terrains};
 
@@ -23,14 +24,14 @@ pub enum GameUpdateSet {
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins)
+        .add_plugins((DefaultPlugins, Light2dPlugin))
         .add_plugins(FpsCounterPlugin)
         .add_plugins(EguiPlugin {
             enable_multipass_for_primary_context: true,
         })
         // .add_plugins(WorldInspectorPlugin::new())
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0))
-        // .add_plugins(RapierDebugRenderPlugin::default())
+        .add_plugins(RapierDebugRenderPlugin::default())
         .add_plugins(AsepriteUltraPlugin)
         .add_plugins(TilemapPlugin)
         .configure_sets(

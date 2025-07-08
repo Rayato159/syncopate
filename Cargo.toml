@@ -10,3 +10,4 @@ bevy-inspector-egui = "0.31"
 bevy_rapier2d = { version = "*", features = ["simd-stable", "debug-render-2d"] }
 bevy_aseprite_ultra = "0.6.1"
 bevy-fps-counter = "0.7.0"
+bevy_light_2d = "0.6"

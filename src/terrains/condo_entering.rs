@@ -233,8 +233,8 @@ pub fn draw_entering_door(mut commands: Commands, asset_server: Res<AssetServer>
 
     commands
         .spawn((
-            Collider::cuboid(x_collider, y_collider),
             CondoClosedDoorEntering(true),
+            Collider::cuboid(x_collider, y_collider),
             Sprite::from_image(door_image),
         ))
         .insert(Transform::from_xyz(
@@ -254,22 +254,22 @@ pub fn draw_trees(mut commands: Commands, asset_server: Res<AssetServer>) {
         (GRID_SIZE * 18., -GRID_SIZE * 8.5),
     ];
 
-    for (x, y) in tree_positions {
-        commands.spawn((
-            DynamicsZOrder,
-            Transform::from_xyz(x, y, 30.),
-            Sprite::from_image(tree_image.to_owned()),
-        ));
-    }
-
     // Colliders
     let x_collider = 10. * (GRID_SIZE / 16.) / 2.;
     let y_collider = 2. * (GRID_SIZE / 16.) / 2.;
 
     for (x, y) in tree_positions {
         commands
-            .spawn((Collider::cuboid(x_collider, y_collider),))
-            .insert(Transform::from_xyz(x, y - 45., 0.));
+            .spawn((
+                DynamicsZOrder,
+                Transform::from_xyz(x, y, 30.),
+                Sprite::from_image(tree_image.to_owned()),
+            ))
+            .with_children(|parent| {
+                parent
+                    .spawn((Collider::cuboid(x_collider, y_collider),))
+                    .insert(Transform::from_xyz(0.0, -GRID_SIZE * 1.4, 0.0));
+            });
     }
 }
 
@@ -288,22 +288,22 @@ pub fn draw_lamps(mut commands: Commands, asset_server: Res<AssetServer>) {
         (GRID_SIZE * 4. + (offset * 2.), y_position),
     ];
 
-    for (x, y) in lamp_positions {
-        commands.spawn((
-            DynamicsZOrder,
-            Sprite::from_image(lamp_image.to_owned()),
-            Transform::from_xyz(x, y, 30.),
-        ));
-    }
-
     // Colliders
     let x_collider = 10. * (GRID_SIZE / 16.) / 2.;
     let y_collider = 2. * (GRID_SIZE / 16.) / 2.;
 
     for (x, y) in lamp_positions {
         commands
-            .spawn((Collider::cuboid(x_collider, y_collider),))
-            .insert(Transform::from_xyz(x, y - 45., 0.));
+            .spawn((
+                DynamicsZOrder,
+                Sprite::from_image(lamp_image.to_owned()),
+                Transform::from_xyz(x, y, 30.),
+            ))
+            .with_children(|parent| {
+                parent
+                    .spawn((Collider::cuboid(x_collider, y_collider),))
+                    .insert(Transform::from_xyz(0.0, -GRID_SIZE * 1.4, 0.0));
+            });
     }
 }
 
