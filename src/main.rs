@@ -5,13 +5,18 @@ use bevy_fps_counter::FpsCounterPlugin;
 use bevy_inspector_egui::bevy_egui::EguiPlugin;
 use bevy_light_2d::prelude::*;
 use bevy_rapier2d::prelude::*;
-use syncopate::{camera, characters::thunwa, terrains};
+use syncopate::{
+    camera,
+    characters::{ravissara, thunwa},
+    terrains,
+};
 
 #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
 pub enum GameStartUpSet {
     Physics,
     Camera,
     Thunwa,
+    Ravissara,
     CondoEntering,
 }
 
@@ -19,6 +24,7 @@ pub enum GameStartUpSet {
 pub enum GameUpdateSet {
     Camera,
     Thunwa,
+    Ravissara,
     CondoEntering,
 }
 
@@ -90,6 +96,12 @@ fn main() {
         )
         .add_systems(Startup, thunwa::setup_thunwa.in_set(GameStartUpSet::Thunwa))
         .add_systems(
+            Startup,
+            ravissara::setup_ravissara
+                .in_set(GameStartUpSet::Ravissara)
+                .after(GameStartUpSet::Thunwa),
+        )
+        .add_systems(
             Update,
             camera::thunwa_camera_following
                 .in_set(GameUpdateSet::Camera)
@@ -100,6 +112,12 @@ fn main() {
             thunwa::thunwa_movement
                 .in_set(GameUpdateSet::Thunwa)
                 .after(GameStartUpSet::Thunwa),
+        )
+        .add_systems(
+            Update,
+            ravissara::ravissara_movement
+                .in_set(GameUpdateSet::Ravissara)
+                .after(GameStartUpSet::Ravissara),
         )
         .add_systems(
             Update,

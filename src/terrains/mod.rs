@@ -1,3 +1,4 @@
+use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
 
 // Notes
@@ -10,5 +11,8 @@ pub(crate) const TILE_SIZE: TilemapTileSize = TilemapTileSize {
     y: GRID_SIZE,
 };
 pub(crate) const MAP_SIZE: TilemapSize = TilemapSize { x: 40, y: 20 };
+
+#[derive(Component)]
+pub struct DynamicsZOrder;
 
 pub mod condo_entering;

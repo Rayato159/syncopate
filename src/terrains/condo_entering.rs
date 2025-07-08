@@ -5,7 +5,7 @@ use bevy_rapier2d::prelude::*;
 
 use crate::{
     characters::thunwa::Thunwa,
-    terrains::{GRID_SIZE, MAP_SIZE, TILE_SIZE},
+    terrains::{DynamicsZOrder, GRID_SIZE, MAP_SIZE, TILE_SIZE},
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -330,9 +330,6 @@ pub fn draw_lamps(mut commands: Commands, asset_server: Res<AssetServer>) {
             });
     }
 }
-
-#[derive(Component)]
-pub struct DynamicsZOrder;
 
 pub fn update_z_order(
     mut sprite_query: Query<&mut Transform, (With<DynamicsZOrder>, Without<Thunwa>)>,
