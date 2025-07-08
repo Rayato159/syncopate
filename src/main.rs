@@ -3,6 +3,7 @@ use bevy_aseprite_ultra::prelude::*;
 use bevy_ecs_tilemap::TilemapPlugin;
 use bevy_fps_counter::FpsCounterPlugin;
 use bevy_inspector_egui::bevy_egui::EguiPlugin;
+use bevy_kira_audio::prelude::*;
 use bevy_light_2d::prelude::*;
 use bevy_rapier2d::prelude::*;
 use syncopate::{
@@ -41,6 +42,7 @@ fn main() {
                 ..Default::default()
             }),
             Light2dPlugin,
+            AudioPlugin,
         ))
         .add_plugins(FpsCounterPlugin)
         .add_plugins(EguiPlugin {
@@ -89,6 +91,10 @@ fn main() {
         .add_systems(
             Startup,
             terrains::condo_entering::draw_lamps.in_set(GameStartUpSet::CondoEntering),
+        )
+        .add_systems(
+            Startup,
+            terrains::condo_entering::play_soundtrack.in_set(GameStartUpSet::CondoEntering),
         )
         .add_systems(
             Startup,
