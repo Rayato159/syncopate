@@ -24,14 +24,25 @@ pub enum GameUpdateSet {
 
 fn main() {
     App::new()
-        .add_plugins((DefaultPlugins, Light2dPlugin))
+        .insert_resource(ClearColor(Color::BLACK))
+        .add_plugins((
+            DefaultPlugins.set(WindowPlugin {
+                primary_window: Some(Window {
+                    title: "Syncopate".into(),
+                    resizable: true,
+                    ..Default::default()
+                }),
+                ..Default::default()
+            }),
+            Light2dPlugin,
+        ))
         .add_plugins(FpsCounterPlugin)
         .add_plugins(EguiPlugin {
             enable_multipass_for_primary_context: true,
         })
         // .add_plugins(WorldInspectorPlugin::new())
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0))
-        .add_plugins(RapierDebugRenderPlugin::default())
+        // .add_plugins(RapierDebugRenderPlugin::default())
         .add_plugins(AsepriteUltraPlugin)
         .add_plugins(TilemapPlugin)
         .configure_sets(

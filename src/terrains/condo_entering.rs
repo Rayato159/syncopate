@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
+use bevy_light_2d::prelude::*;
 use bevy_rapier2d::prelude::*;
 
 use crate::{
@@ -24,10 +25,23 @@ enum TextureIndex {
 pub fn draw_terrain(mut commands: Commands, asset_server: Res<AssetServer>) {
     let scene_image = asset_server.load("tileset/condo/entering/scene.png");
 
-    commands.spawn((
-        Sprite::from_image(scene_image),
-        Transform::from_xyz(0.0, 0.0, 0.0),
-    ));
+    commands
+        .spawn((
+            Sprite::from_image(scene_image),
+            Transform::from_xyz(0.0, 0.0, 0.0),
+        ))
+        .with_children(|parent| {
+            parent
+                .spawn(Sprite {
+                    custom_size: Some(Vec2::new(
+                        MAP_SIZE.x as f32 * GRID_SIZE,
+                        MAP_SIZE.y as f32 * GRID_SIZE,
+                    )),
+                    color: Color::srgba(0.0, 0.0, 0.0, 0.8),
+                    ..Default::default()
+                })
+                .insert(Transform::from_xyz(0.0, 0.0, 1.0));
+        });
 
     // Map bounds
     let width = GRID_SIZE * MAP_SIZE.x as f32;
@@ -303,6 +317,16 @@ pub fn draw_lamps(mut commands: Commands, asset_server: Res<AssetServer>) {
                 parent
                     .spawn((Collider::cuboid(x_collider, y_collider),))
                     .insert(Transform::from_xyz(0.0, -GRID_SIZE * 1.4, 0.0));
+            })
+            .with_children(|parent| {
+                parent
+                    .spawn(PointLight2d {
+                        intensity: 2.0,
+                        radius: 80.0,
+                        color: Color::WHITE,
+                        ..Default::default()
+                    })
+                    .insert(Transform::from_xyz(0.0, GRID_SIZE, 0.0));
             });
     }
 }
