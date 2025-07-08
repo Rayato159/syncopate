@@ -2,7 +2,10 @@ use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-use crate::terrains::{GRID_SIZE, MAP_SIZE, TILE_SIZE};
+use crate::{
+    characters::thunwa::Thunwa,
+    terrains::{GRID_SIZE, MAP_SIZE, TILE_SIZE},
+};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 enum TextureIndex {
@@ -17,9 +20,6 @@ enum TextureIndex {
     BloodStain6 = 473,
     BloodStain7 = 453,
 }
-
-#[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
-pub struct CondoClosedDoorEntering(pub bool);
 
 pub fn draw_terrain(mut commands: Commands, asset_server: Res<AssetServer>) {
     let scene_image = asset_server.load("tileset/condo/entering/scene.png");
@@ -37,25 +37,25 @@ pub fn draw_terrain(mut commands: Commands, asset_server: Res<AssetServer>) {
     // Left
     commands.spawn((
         Collider::cuboid(thickness / 2., height / 2.),
-        Transform::from_xyz(-width / 2. - thickness / 2., 0., 5.),
+        Transform::from_xyz(-width / 2. - thickness / 2., 0., 0.),
     ));
 
     // Right
     commands.spawn((
         Collider::cuboid(thickness / 2., height / 2.),
-        Transform::from_xyz(width / 2. + thickness / 2., 0., 5.),
+        Transform::from_xyz(width / 2. + thickness / 2., 0., 0.),
     ));
 
     // Bottom
     commands.spawn((
         Collider::cuboid(width / 2., thickness / 2.),
-        Transform::from_xyz(0., -height / 2. - thickness / 2., 5.),
+        Transform::from_xyz(0., -height / 2. - thickness / 2., 0.),
     ));
 
     // Top
     commands.spawn((
         Collider::cuboid(width / 2., thickness / 2.),
-        Transform::from_xyz(0., height / 2. + thickness / 2., 5.),
+        Transform::from_xyz(0., height / 2. + thickness / 2., 0.),
     ));
 
     let texture_handle: Handle<Image> = asset_server.load("tileset/condo/entering/tiles_1.png");
@@ -68,11 +68,11 @@ pub fn draw_terrain(mut commands: Commands, asset_server: Res<AssetServer>) {
             (GRID_SIZE * 22.) / 2.,
             (GRID_SIZE - 10.) / 2.,
         ))
-        .insert(Transform::from_xyz(-GRID_SIZE * 2., GRID_SIZE * 2.7, 2.0));
+        .insert(Transform::from_xyz(-GRID_SIZE * 2., GRID_SIZE * 2.7, 0.));
 
     commands
         .spawn(Collider::cuboid(2., (GRID_SIZE + 10.) / 2.))
-        .insert(Transform::from_xyz(-GRID_SIZE * 13., GRID_SIZE * 3.0, 2.0));
+        .insert(Transform::from_xyz(-GRID_SIZE * 13., GRID_SIZE * 3.0, 0.));
 
     // Front of Upper Floor 2
     commands
@@ -80,11 +80,11 @@ pub fn draw_terrain(mut commands: Commands, asset_server: Res<AssetServer>) {
             (GRID_SIZE * 11.) / 2.,
             (GRID_SIZE - 10.) / 2.,
         ))
-        .insert(Transform::from_xyz(GRID_SIZE * 14.5, GRID_SIZE * 1.7, 10.0));
+        .insert(Transform::from_xyz(GRID_SIZE * 14.5, GRID_SIZE * 1.7, 0.));
 
     commands
         .spawn(Collider::cuboid(2., GRID_SIZE / 2.))
-        .insert(Transform::from_xyz(GRID_SIZE * 9., GRID_SIZE * 2.0, 2.0));
+        .insert(Transform::from_xyz(GRID_SIZE * 9., GRID_SIZE * 2.0, 0.));
 
     // Wall
     commands
@@ -92,7 +92,7 @@ pub fn draw_terrain(mut commands: Commands, asset_server: Res<AssetServer>) {
             (GRID_SIZE * MAP_SIZE.x as f32) / 2.,
             GRID_SIZE / 2.,
         ))
-        .insert(Transform::from_xyz(0., 6.8 * GRID_SIZE, 2.0));
+        .insert(Transform::from_xyz(0., 6.8 * GRID_SIZE, 0.));
 
     // Lower Window
     draw_windows(
@@ -222,6 +222,9 @@ fn draw_windows(
     }
 }
 
+#[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
+pub struct CondoClosedDoorEntering(pub bool);
+
 pub fn draw_entering_door(mut commands: Commands, asset_server: Res<AssetServer>) {
     let door_image = asset_server.load("tileset/condo/entering/double_door_closed.png");
     let height_adjust = 5. * (GRID_SIZE / 16.);
@@ -253,7 +256,8 @@ pub fn draw_trees(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     for (x, y) in tree_positions {
         commands.spawn((
-            Transform::from_xyz(x, y, 10.0),
+            DynamicsZOrder,
+            Transform::from_xyz(x, y, 30.),
             Sprite::from_image(tree_image.to_owned()),
         ));
     }
@@ -265,7 +269,7 @@ pub fn draw_trees(mut commands: Commands, asset_server: Res<AssetServer>) {
     for (x, y) in tree_positions {
         commands
             .spawn((Collider::cuboid(x_collider, y_collider),))
-            .insert(Transform::from_xyz(x, y - 45., 10.0));
+            .insert(Transform::from_xyz(x, y - 45., 0.));
     }
 }
 
@@ -285,9 +289,11 @@ pub fn draw_lamps(mut commands: Commands, asset_server: Res<AssetServer>) {
     ];
 
     for (x, y) in lamp_positions {
-        commands
-            .spawn((Sprite::from_image(lamp_image.to_owned()),))
-            .insert(Transform::from_xyz(x, y, 10.0));
+        commands.spawn((
+            DynamicsZOrder,
+            Sprite::from_image(lamp_image.to_owned()),
+            Transform::from_xyz(x, y, 30.),
+        ));
     }
 
     // Colliders
@@ -297,6 +303,24 @@ pub fn draw_lamps(mut commands: Commands, asset_server: Res<AssetServer>) {
     for (x, y) in lamp_positions {
         commands
             .spawn((Collider::cuboid(x_collider, y_collider),))
-            .insert(Transform::from_xyz(x, y - 45., 10.0));
+            .insert(Transform::from_xyz(x, y - 45., 0.));
+    }
+}
+
+#[derive(Component)]
+pub struct DynamicsZOrder;
+
+pub fn update_z_order(
+    mut sprite_query: Query<&mut Transform, (With<DynamicsZOrder>, Without<Thunwa>)>,
+    thunwa_collider_query: Query<&Transform, (With<Thunwa>, Without<DynamicsZOrder>)>,
+) {
+    if let Ok(collider_transform) = thunwa_collider_query.single() {
+        for mut transform in sprite_query.iter_mut() {
+            if transform.translation.y - 16. > collider_transform.translation.y {
+                transform.translation.z = collider_transform.translation.z - 1.0;
+            } else {
+                transform.translation.z = 30.;
+            }
+        }
     }
 }

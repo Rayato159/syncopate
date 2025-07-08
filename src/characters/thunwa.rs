@@ -10,13 +10,16 @@ pub struct Thunwa {
     pub last_direction: Vec3,
 }
 
+#[derive(Component)]
+pub struct ThunwaCollider;
+
 pub fn setup_thunwa(mut commands: Commands, asset_server: Res<AssetServer>) {
     let aseprite = asset_server.load("characters/thunwa/thunwa_sprite.aseprite");
 
     commands
         .spawn((
             Thunwa {
-                speed: 200.,
+                speed: 160.,
                 last_direction: Vec3::ZERO,
             },
             AseAnimation {
@@ -26,14 +29,18 @@ pub fn setup_thunwa(mut commands: Commands, asset_server: Res<AssetServer>) {
             Sprite::default(),
             RigidBody::Dynamic,
         ))
-        .insert(Collider::capsule_y(30. / 2., 30. / 2.))
         .insert(Velocity::zero())
         .insert(LockedAxes::ROTATION_LOCKED)
         .insert(Transform::from_xyz(
             -((GRID_SIZE * MAP_SIZE.x as f32) / 2. - (GRID_SIZE * 3.)),
             -(GRID_SIZE * 8.),
-            8.0,
-        ));
+            20.,
+        ))
+        .with_children(|parent| {
+            parent
+                .spawn((ThunwaCollider, Collider::capsule_y(6., 6.)))
+                .insert(Transform::from_xyz(0.0, -16.0, 0.));
+        });
 }
 
 pub fn thunwa_movement(

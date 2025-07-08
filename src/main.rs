@@ -30,7 +30,7 @@ fn main() {
         })
         // .add_plugins(WorldInspectorPlugin::new())
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0))
-        .add_plugins(RapierDebugRenderPlugin::default())
+        // .add_plugins(RapierDebugRenderPlugin::default())
         .add_plugins(AsepriteUltraPlugin)
         .add_plugins(TilemapPlugin)
         .configure_sets(
@@ -87,6 +87,12 @@ fn main() {
             Update,
             thunwa::thunwa_movement
                 .in_set(GameUpdateSet::Thunwa)
+                .after(GameStartUpSet::Thunwa),
+        )
+        .add_systems(
+            Update,
+            terrains::condo_entering::update_z_order
+                .in_set(GameUpdateSet::CondoEntering)
                 .after(GameStartUpSet::Thunwa),
         )
         .run();
