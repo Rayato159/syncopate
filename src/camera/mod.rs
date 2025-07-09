@@ -1,11 +1,9 @@
 use bevy::{prelude::*, render::camera::ScalingMode};
 
-use crate::characters::thunwa::Thunwa;
-
 #[derive(Component)]
 pub struct PlayerCamera;
 
-pub fn camera_setup(mut commands: Commands) {
+pub fn player_camera_setup(mut commands: Commands) {
     commands.spawn((
         PlayerCamera,
         Camera2d,
@@ -20,14 +18,13 @@ pub fn camera_setup(mut commands: Commands) {
     ));
 }
 
-pub fn thunwa_camera_following(
-    mut query: Query<(&mut Transform, Option<&Thunwa>), With<PlayerCamera>>,
-    thunwa_query: Query<&Transform, (With<Thunwa>, Without<PlayerCamera>)>,
-) {
-    if let Ok(thunwa_transform) = thunwa_query.single() {
-        if let Ok((mut camera_transform, _)) = query.single_mut() {
-            camera_transform.translation.x = thunwa_transform.translation.x;
-            camera_transform.translation.y = thunwa_transform.translation.y;
-        }
-    }
+#[derive(Component)]
+pub struct MainMenuCamera;
+
+pub fn main_menu_camera_setup(mut commands: Commands) {
+    commands.spawn((
+        MainMenuCamera,
+        Camera2d,
+        Transform::from_xyz(0.0, 0.0, 1000.),
+    ));
 }

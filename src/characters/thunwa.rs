@@ -2,7 +2,10 @@ use bevy::prelude::*;
 use bevy_aseprite_ultra::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-use crate::terrains::{GRID_SIZE, MAP_SIZE};
+use crate::{
+    camera::PlayerCamera,
+    terrains::{GRID_SIZE, MAP_SIZE},
+};
 
 #[derive(Component)]
 pub struct Thunwa {
@@ -91,6 +94,18 @@ pub fn thunwa_movement(
         } else {
             let movement = direction.xy().normalize() * thunwa.speed;
             vel.linvel = movement;
+        }
+    }
+}
+
+pub fn thunwa_camera_following(
+    mut query: Query<(&mut Transform, Option<&Thunwa>), With<PlayerCamera>>,
+    thunwa_query: Query<&Transform, (With<Thunwa>, Without<PlayerCamera>)>,
+) {
+    if let Ok(thunwa_transform) = thunwa_query.single() {
+        if let Ok((mut camera_transform, _)) = query.single_mut() {
+            camera_transform.translation.x = thunwa_transform.translation.x;
+            camera_transform.translation.y = thunwa_transform.translation.y;
         }
     }
 }
