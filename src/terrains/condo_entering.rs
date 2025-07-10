@@ -1,6 +1,5 @@
 use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
-use bevy_kira_audio::prelude::*;
 use bevy_light_2d::prelude::*;
 use bevy_rapier2d::prelude::*;
 
@@ -345,11 +344,4 @@ pub fn update_z_order(
             }
         }
     }
-}
-
-pub fn play_soundtrack(asset_server: Res<AssetServer>, audio: Res<Audio>) {
-    audio
-        .play(asset_server.load("soundtracks/condo/entering/ready_or_not.ogg"))
-        .with_volume(0.6)
-        .looped();
 }

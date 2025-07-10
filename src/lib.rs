@@ -3,6 +3,7 @@ use bevy_rapier2d::prelude::*;
 
 pub mod camera;
 pub mod characters;
+pub mod sounds;
 pub mod terrains;
 pub mod ui;
 

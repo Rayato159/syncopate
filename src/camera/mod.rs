@@ -22,9 +22,5 @@ pub fn player_camera_setup(mut commands: Commands) {
 pub struct MainMenuCamera;
 
 pub fn main_menu_camera_setup(mut commands: Commands) {
-    commands.spawn((
-        MainMenuCamera,
-        Camera2d,
-        Transform::from_xyz(0.0, 0.0, 1000.),
-    ));
+    commands.spawn((MainMenuCamera, Camera2d));
 }

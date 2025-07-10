@@ -9,7 +9,7 @@ use bevy_rapier2d::prelude::*;
 use syncopate::{
     GameState, camera,
     characters::{ravissara, thunwa},
-    terrains,
+    sounds, terrains,
     ui::{self, main_menu::MainMenuLightFlickerTimer},
 };
 
@@ -25,6 +25,7 @@ pub enum GameStartUpSet {
 
 #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
 pub enum GameUpdateSet {
+    UI,
     Camera,
     Thunwa,
     Ravissara,
@@ -88,10 +89,36 @@ fn main() {
             camera::main_menu_camera_setup.in_set(GameStartUpSet::Camera),
         )
         .add_systems(
+            OnEnter(GameState::MainMenu),
+            sounds::main_menu::play_soundtrack.in_set(GameStartUpSet::UI),
+        )
+        .add_systems(
+            OnExit(GameState::MainMenu),
+            sounds::main_menu::stop_playing_soundtrack.in_set(GameUpdateSet::UI),
+        )
+        .add_systems(
             Update,
             ui::main_menu::light_flicker
-                .in_set(GameUpdateSet::Camera)
+                .in_set(GameUpdateSet::UI)
                 .run_if(in_state(GameState::MainMenu)),
+        )
+        .add_systems(
+            Update,
+            ui::main_menu::ui_interaction
+                .in_set(GameUpdateSet::UI)
+                .run_if(in_state(GameState::MainMenu)),
+        )
+        .add_systems(
+            Update,
+            ui::main_menu::button_pressed_handler
+                .in_set(GameUpdateSet::UI)
+                .run_if(in_state(GameState::MainMenu)),
+        )
+        .add_systems(
+            Update,
+            ui::main_menu::despawn_main_menu
+                .in_set(GameUpdateSet::UI)
+                .run_if(in_state(GameState::InGame)),
         )
         .add_systems(
             OnEnter(GameState::InGame),
@@ -112,10 +139,6 @@ fn main() {
         .add_systems(
             OnEnter(GameState::InGame),
             terrains::condo_entering::draw_lamps.in_set(GameStartUpSet::CondoEntering),
-        )
-        .add_systems(
-            OnEnter(GameState::InGame),
-            terrains::condo_entering::play_soundtrack.in_set(GameStartUpSet::CondoEntering),
         )
         .add_systems(
             OnEnter(GameState::InGame),
