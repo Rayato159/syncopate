@@ -126,6 +126,14 @@ fn main() {
         )
         .add_systems(
             OnEnter(GameState::InGame),
+            sounds::condo_entering::play_soundtrack.in_set(GameStartUpSet::CondoEntering),
+        )
+        .add_systems(
+            OnExit(GameState::InGame),
+            sounds::condo_entering::stop_playing_soundtrack.in_set(GameUpdateSet::CondoEntering),
+        )
+        .add_systems(
+            OnEnter(GameState::InGame),
             terrains::condo_entering::draw_terrain.in_set(GameStartUpSet::CondoEntering),
         )
         .add_systems(
