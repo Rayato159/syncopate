@@ -78,19 +78,20 @@ fn main() {
         )
         .add_systems(
             OnEnter(GameState::MainMenu),
-            ui::main_menu::spawn_main_menu.in_set(GameStartUpSet::UI),
-        )
-        .add_systems(
-            OnEnter(GameState::MainMenu),
-            camera::main_menu_camera_setup.in_set(GameStartUpSet::Camera),
-        )
-        .add_systems(
-            OnEnter(GameState::MainMenu),
-            sounds::main_menu::play_soundtrack.in_set(GameStartUpSet::UI),
+            (
+                ui::main_menu::spawn_main_menu,
+                camera::main_menu_camera_setup,
+                sounds::main_menu::play_soundtrack,
+            )
+                .in_set(GameStartUpSet::UI),
         )
         .add_systems(
             OnExit(GameState::MainMenu),
-            sounds::main_menu::stop_playing_soundtrack.in_set(GameUpdateSet::UI),
+            (
+                sounds::main_menu::stop_playing_soundtrack,
+                ui::main_menu::despawn_main_menu,
+            )
+                .in_set(GameUpdateSet::UI),
         )
         .add_systems(
             Update,
@@ -111,18 +112,19 @@ fn main() {
                 .run_if(in_state(GameState::MainMenu)),
         )
         .add_systems(
-            Update,
-            ui::main_menu::despawn_main_menu
-                .in_set(GameUpdateSet::UI)
-                .run_if(in_state(GameState::InGame)),
-        )
-        .add_systems(
             OnEnter(GameState::InGame),
             syncopate::global_bevy_rapier_config.in_set(GameStartUpSet::Physics),
         )
         .add_systems(
             OnEnter(GameState::InGame),
-            sounds::condo_entering::play_soundtrack.in_set(GameStartUpSet::CondoEntering),
+            (
+                sounds::condo_entering::play_soundtrack,
+                terrains::condo_entering::draw_terrain,
+                terrains::condo_entering::draw_entering_door,
+                terrains::condo_entering::draw_trees,
+                terrains::condo_entering::draw_lamps,
+            )
+                .in_set(GameStartUpSet::CondoEntering),
         )
         .add_systems(
             OnExit(GameState::InGame),
@@ -130,27 +132,11 @@ fn main() {
         )
         .add_systems(
             OnEnter(GameState::InGame),
-            terrains::condo_entering::draw_terrain.in_set(GameStartUpSet::CondoEntering),
-        )
-        .add_systems(
-            OnEnter(GameState::InGame),
-            terrains::condo_entering::draw_entering_door.in_set(GameStartUpSet::CondoEntering),
-        )
-        .add_systems(
-            OnEnter(GameState::InGame),
-            terrains::condo_entering::draw_trees.in_set(GameStartUpSet::CondoEntering),
-        )
-        .add_systems(
-            OnEnter(GameState::InGame),
-            terrains::condo_entering::draw_lamps.in_set(GameStartUpSet::CondoEntering),
-        )
-        .add_systems(
-            OnEnter(GameState::InGame),
-            camera::player_camera_setup.in_set(GameStartUpSet::CondoEntering),
-        )
-        .add_systems(
-            OnEnter(GameState::InGame),
             thunwa::setup_thunwa.in_set(GameStartUpSet::Thunwa),
+        )
+        .add_systems(
+            OnEnter(GameState::InGame),
+            camera::player_camera_setup.in_set(GameStartUpSet::Thunwa),
         )
         .add_systems(
             Update,
