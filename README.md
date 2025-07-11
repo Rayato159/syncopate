@@ -1,11 +1,13 @@
 # Syncopate
 
-**Syncopate** is a 2D pixel art sci-fi horror game, blending intense sci-fi horror with rhythm-based combat mechanics. Set in the heart of modern-day Bangkok, the story follows **Thunwa Phakdeepong**, a genius mathematician turned investigator, and his rookie partner **Ravissara Thanakul** as they confront mysteries linked to escaped experimental monsters.
+![Syncopate Logo](./assets/misc/cover_1.png)
+
+**Syncopate** is a 2D pixel art sci-fi horror game, blending intense sci-fi horror with real-time based combat. Set in the heart of modern-day Bangkok, the story follows **Thunwa Phakdeepong**, a genius mathematician turned investigator as he need to confront mysteries linked to escaped experimental monsters.
 
 ## 🎮 Gameplay Features
 
-- **Turn-Based Rhythm Combat**  
-  Time your attacks with precision to maximize damage and survive brutal boss encounters.
+- **Real-Time Combat**  
+  Time your attacks with precision to damage and survive brutal boss encounters.
 
 - **Vector Mind Investigation**  
   Enter a trance state to reconstruct crimes using mathematical reasoning and spatial logic.
@@ -15,9 +17,6 @@
 
 - **Exploration-Focused Maps**  
   Each chapter takes place in unique, handcrafted environments (e.g. 34-floor condo, slums, blacksite labs).
-
-- **Bosses with Intelligence**  
-  Face off against terrifying creatures that adapt, think, and manipulate — not just hit hard.
 
 ## 🛠️ Built With
 

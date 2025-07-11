@@ -8,7 +8,7 @@ use bevy_light_2d::prelude::*;
 use bevy_rapier2d::prelude::*;
 use syncopate::{
     GameState, camera,
-    characters::{ravissara, thunwa},
+    characters::thunwa,
     sounds, terrains,
     ui::{self, main_menu::MainMenuLightFlickerTimer},
 };
@@ -19,7 +19,6 @@ pub enum GameStartUpSet {
     Physics,
     Camera,
     Thunwa,
-    Ravissara,
     CondoEntering,
 }
 
@@ -28,7 +27,6 @@ pub enum GameUpdateSet {
     UI,
     Camera,
     Thunwa,
-    Ravissara,
     CondoEntering,
 }
 
@@ -65,7 +63,6 @@ fn main() {
                 GameStartUpSet::Physics,
                 GameStartUpSet::CondoEntering,
                 GameStartUpSet::Thunwa,
-                GameStartUpSet::Ravissara,
                 GameStartUpSet::Camera,
             )
                 .chain(),
@@ -75,7 +72,6 @@ fn main() {
             (
                 GameUpdateSet::CondoEntering,
                 GameUpdateSet::Thunwa,
-                GameUpdateSet::Ravissara,
                 GameUpdateSet::Camera,
             )
                 .chain(),
@@ -157,12 +153,6 @@ fn main() {
             thunwa::setup_thunwa.in_set(GameStartUpSet::Thunwa),
         )
         .add_systems(
-            OnEnter(GameState::InGame),
-            ravissara::setup_ravissara
-                .in_set(GameStartUpSet::Ravissara)
-                .after(GameStartUpSet::Thunwa),
-        )
-        .add_systems(
             Update,
             thunwa::thunwa_camera_following
                 .in_set(GameUpdateSet::Thunwa)
@@ -173,13 +163,6 @@ fn main() {
             thunwa::thunwa_movement
                 .in_set(GameUpdateSet::Thunwa)
                 .after(GameStartUpSet::Thunwa)
-                .run_if(in_state(GameState::InGame)),
-        )
-        .add_systems(
-            Update,
-            ravissara::ravissara_movement
-                .in_set(GameUpdateSet::Ravissara)
-                .after(GameStartUpSet::Ravissara)
                 .run_if(in_state(GameState::InGame)),
         )
         .add_systems(
