@@ -7,7 +7,7 @@ use bevy_kira_audio::prelude::*;
 use bevy_light_2d::prelude::*;
 use bevy_rapier2d::prelude::*;
 use syncopate::{
-    GameState, PauseState, camera,
+    GameState, MainMenuState, PauseState, camera,
     characters::thunwa,
     sounds, terrains,
     ui::{self, main_menu::MainMenuLightFlickerTimer},
@@ -63,6 +63,7 @@ fn main() {
         .add_plugins(AsepriteUltraPlugin)
         .add_plugins(TilemapPlugin)
         .init_state::<GameState>()
+        .init_state::<MainMenuState>()
         .init_state::<PauseState>()
         .configure_sets(
             Startup,
@@ -87,17 +88,45 @@ fn main() {
         .add_systems(
             OnEnter(GameState::MainMenu),
             (
-                ui::main_menu::spawn_main_menu,
                 camera::main_menu_camera_setup,
                 sounds::main_menu::play_soundtrack,
+                ui::main_menu::spawn_main_menu_scene,
             )
-                .in_set(GameStartUpSet::UI),
+                .before(GameStartUpSet::UI),
+        )
+        .add_systems(
+            OnEnter(MainMenuState::MainMenu),
+            ui::main_menu::spawn_main_menu.in_set(GameStartUpSet::UI),
+        )
+        .add_systems(
+            OnExit(MainMenuState::MainMenu),
+            ui::main_menu::despawn_main_menu.in_set(GameUpdateSet::UI),
+        )
+        .add_systems(
+            OnEnter(MainMenuState::Options),
+            ui::options::spawn_options_menu.in_set(GameStartUpSet::UI),
+        )
+        .add_systems(
+            OnExit(MainMenuState::Options),
+            ui::options::despawn_options_menu.in_set(GameUpdateSet::UI),
+        )
+        .add_systems(
+            Update,
+            (
+                ui::options::button_pressed_handler,
+                ui::options::back_by_keyboard_input_handler,
+            )
+                .in_set(GameUpdateSet::UI)
+                .run_if(in_state(GameState::MainMenu))
+                .run_if(in_state(MainMenuState::Options)),
         )
         .add_systems(
             OnExit(GameState::MainMenu),
             (
                 sounds::main_menu::stop_playing_soundtrack,
+                ui::main_menu::despawn_main_menu_scene,
                 ui::main_menu::despawn_main_menu,
+                camera::despawn_main_menu_camera,
             )
                 .in_set(GameUpdateSet::UI),
         )
@@ -107,17 +136,13 @@ fn main() {
                 .in_set(GameUpdateSet::UI)
                 .run_if(in_state(GameState::MainMenu)),
         )
-        .add_systems(
-            Update,
-            ui::main_menu::ui_interaction
-                .in_set(GameUpdateSet::UI)
-                .run_if(in_state(GameState::MainMenu)),
-        )
+        .add_systems(Update, ui::ui_interaction.in_set(GameUpdateSet::UI))
         .add_systems(
             Update,
             ui::main_menu::button_pressed_handler
                 .in_set(GameUpdateSet::UI)
-                .run_if(in_state(GameState::MainMenu)),
+                .run_if(in_state(GameState::MainMenu))
+                .run_if(in_state(MainMenuState::MainMenu)),
         )
         .add_systems(
             OnEnter(GameState::InGame),
@@ -133,11 +158,7 @@ fn main() {
         )
         .add_systems(
             OnEnter(GameState::InGame),
-            thunwa::setup_thunwa.in_set(GameStartUpSet::Thunwa),
-        )
-        .add_systems(
-            OnEnter(GameState::InGame),
-            camera::player_camera_setup.in_set(GameStartUpSet::Thunwa),
+            (thunwa::setup_thunwa, camera::player_camera_setup).in_set(GameStartUpSet::Thunwa),
         )
         .add_systems(
             OnExit(GameState::InGame),
@@ -153,8 +174,7 @@ fn main() {
             Update,
             thunwa::thunwa_camera_following
                 .in_set(GameUpdateSet::Thunwa)
-                .run_if(in_state(GameState::InGame))
-                .run_if(in_state(PauseState::InGame)),
+                .run_if(in_state(GameState::InGame)),
         )
         .add_systems(
             Update,
@@ -169,12 +189,13 @@ fn main() {
             terrains::condo_entering::update_z_order
                 .in_set(GameUpdateSet::CondoEntering)
                 .after(GameStartUpSet::Thunwa)
-                .run_if(in_state(GameState::InGame))
-                .run_if(in_state(PauseState::InGame)),
+                .run_if(in_state(GameState::InGame)),
         )
         .add_systems(
             Update,
-            ui::paused_menu::paused_menu_toggle.in_set(GameUpdateSet::UI),
+            ui::paused_menu::paused_by_keyboard_input_handler
+                .in_set(GameUpdateSet::UI)
+                .run_if(in_state(GameState::InGame)),
         )
         .add_systems(
             OnEnter(PauseState::Paused),
@@ -183,12 +204,6 @@ fn main() {
         .add_systems(
             Update,
             ui::paused_menu::button_pressed_handler
-                .in_set(GameUpdateSet::UI)
-                .run_if(in_state(PauseState::Paused)),
-        )
-        .add_systems(
-            Update,
-            ui::paused_menu::ui_interaction
                 .in_set(GameUpdateSet::UI)
                 .run_if(in_state(PauseState::Paused)),
         )

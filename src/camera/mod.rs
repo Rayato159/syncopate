@@ -33,3 +33,12 @@ pub struct MainMenuCamera;
 pub fn main_menu_camera_setup(mut commands: Commands) {
     commands.spawn((MainMenuCamera, Camera2d));
 }
+
+pub fn despawn_main_menu_camera(
+    mut commands: Commands,
+    main_menu_camera_query: Query<Entity, With<MainMenuCamera>>,
+) {
+    for entity in main_menu_camera_query.iter() {
+        commands.entity(entity).despawn();
+    }
+}

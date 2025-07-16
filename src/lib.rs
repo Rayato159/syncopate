@@ -18,18 +18,18 @@ pub enum GameState {
 #[derive(States, Default, Debug, Clone, PartialEq, Eq, Hash)]
 pub enum PauseState {
     #[default]
+    None,
     InGame,
     Paused,
 }
 
 #[derive(States, Default, Debug, Clone, PartialEq, Eq, Hash)]
 pub enum MainMenuState {
+    None,
     #[default]
-    Idle,
+    MainMenu,
     Options,
 }
-
-pub const MASTER_VOLUME: f64 = 0.8;
 
 pub fn global_bevy_rapier_config(
     mut rapier_config: Query<&mut RapierConfiguration>,

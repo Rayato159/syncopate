@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_light_2d::prelude::*;
 use rand::prelude::*;
 
-use crate::{GameState, camera::MainMenuCamera};
+use crate::{GameState, MainMenuState, PauseState};
 
 const MAIN_MENU_WIDTH: f32 = 1920.;
 
@@ -20,10 +20,8 @@ pub struct Menu;
 
 const MAIN_MENU_LIST: [&str; 4] = ["New Game", "Load Game", "Options", "Quit"];
 
-pub fn spawn_main_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
+pub fn spawn_main_menu_scene(mut commands: Commands, asset_server: Res<AssetServer>) {
     let background_image = asset_server.load("ui/main_menu/bg.png");
-    let font = asset_server.load("ui/fonts/pixeloid_mono.ttf");
-    let font_bold = asset_server.load("ui/fonts/pixeloid_mono_bold.ttf");
 
     commands
         .spawn((MainMenuScene, Sprite::from_image(background_image)))
@@ -39,6 +37,11 @@ pub fn spawn_main_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
                 Transform::from_xyz((MAIN_MENU_WIDTH / 2.) - 415., -90., 500.),
             ));
         });
+}
+
+pub fn spawn_main_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
+    let font = asset_server.load("ui/fonts/pixeloid_mono.ttf");
+    let font_bold = asset_server.load("ui/fonts/pixeloid_mono_bold.ttf");
 
     commands
         .spawn((
@@ -126,27 +129,11 @@ pub fn spawn_main_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
         });
 }
 
-pub fn ui_interaction(
-    mut button_query: Query<(&Interaction, &mut BackgroundColor), Changed<Interaction>>,
-) {
-    for (interaction, mut color) in button_query.iter_mut() {
-        match *interaction {
-            Interaction::Pressed => {
-                *color = BackgroundColor(Color::srgba(0.8, 0.8, 0.8, 0.15));
-            }
-            Interaction::Hovered => {
-                *color = BackgroundColor(Color::srgba(0.8, 0.8, 0.8, 0.07));
-            }
-            Interaction::None => {
-                *color = BackgroundColor(Color::NONE);
-            }
-        }
-    }
-}
-
 pub fn button_pressed_handler(
     button_query: Query<(&Interaction, &Name), Changed<Interaction>>,
-    mut next_state: ResMut<NextState<GameState>>,
+    mut next_game_state: ResMut<NextState<GameState>>,
+    mut next_main_menu_state: ResMut<NextState<MainMenuState>>,
+    mut next_pause_state: ResMut<NextState<PauseState>>,
 ) {
     for (interaction, name) in button_query.iter() {
         if *interaction != Interaction::Pressed {
@@ -155,13 +142,13 @@ pub fn button_pressed_handler(
 
         match name.as_str() {
             "New Game" => {
-                next_state.set(GameState::InGame);
+                next_game_state.set(GameState::InGame);
+                next_pause_state.set(PauseState::InGame);
+                next_main_menu_state.set(MainMenuState::None);
             }
             "Load Game" => return,
-            "Options" => return,
-            "Quit" => {
-                std::process::exit(0);
-            }
+            "Options" => next_main_menu_state.set(MainMenuState::Options),
+            "Quit" => std::process::exit(0),
             _ => return,
         }
     }
@@ -195,39 +182,17 @@ pub fn light_flicker(
 
 pub fn despawn_main_menu(
     mut commands: Commands,
-    main_menu_ui_query: Query<
-        Entity,
-        (
-            With<MainMenuUI>,
-            Without<MainMenuScene>,
-            Without<MainMenuCamera>,
-        ),
-    >,
-    main_menu_scene_query: Query<
-        Entity,
-        (
-            With<MainMenuScene>,
-            Without<MainMenuUI>,
-            Without<MainMenuCamera>,
-        ),
-    >,
-    main_menu_camera_query: Query<
-        Entity,
-        (
-            With<MainMenuCamera>,
-            Without<MainMenuUI>,
-            Without<MainMenuScene>,
-        ),
-    >,
+    main_menu_ui_query: Query<Entity, With<MainMenuUI>>,
 ) {
-    for entity in main_menu_camera_query.iter() {
-        commands.entity(entity).despawn();
-    }
-
     for entity in main_menu_ui_query.iter() {
         commands.entity(entity).despawn();
     }
+}
 
+pub fn despawn_main_menu_scene(
+    mut commands: Commands,
+    main_menu_scene_query: Query<Entity, With<MainMenuScene>>,
+) {
     for entity in main_menu_scene_query.iter() {
         commands.entity(entity).despawn();
     }
