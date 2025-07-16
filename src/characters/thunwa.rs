@@ -46,6 +46,12 @@ pub fn setup_thunwa(mut commands: Commands, asset_server: Res<AssetServer>) {
         });
 }
 
+pub fn despawn_thunwa(mut commands: Commands, thunwa_query: Query<Entity, With<Thunwa>>) {
+    for entity in thunwa_query.iter() {
+        commands.entity(entity).despawn();
+    }
+}
+
 pub fn thunwa_movement(
     keyboard_input: Res<ButtonInput<KeyCode>>,
     mut query: Query<(&mut Thunwa, &mut Velocity, &mut AseAnimation), With<Thunwa>>,

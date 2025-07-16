@@ -18,6 +18,15 @@ pub fn player_camera_setup(mut commands: Commands) {
     ));
 }
 
+pub fn despawn_player_camera(
+    mut commands: Commands,
+    player_camera_query: Query<Entity, With<PlayerCamera>>,
+) {
+    for entity in player_camera_query.iter() {
+        commands.entity(entity).despawn();
+    }
+}
+
 #[derive(Component)]
 pub struct MainMenuCamera;
 
