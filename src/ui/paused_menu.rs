@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{GameState, MainMenuState, PauseState};
+use crate::{GameState, MainMenuState, PauseOptionsState, PauseState};
 
 #[derive(Component)]
 pub struct PausedUI;
@@ -8,7 +8,7 @@ pub struct PausedUI;
 #[derive(Component)]
 pub struct PausedMenu;
 
-const PAUSED_MENU_LIST: [&str; 2] = ["Options", "Main Menu"];
+const PAUSED_MENU_LIST: [&str; 2] = ["Options", "Return To Main Menu"];
 
 pub fn spawn_paused_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
     let font = asset_server.load("ui/fonts/pixeloid_mono.ttf");
@@ -60,8 +60,8 @@ pub fn spawn_paused_menu(mut commands: Commands, asset_server: Res<AssetServer>)
                         Name::new(label.to_string()),
                         Button,
                         Node {
-                            width: Val::Px(502.),
-                            height: Val::Px(88.),
+                            width: Val::Px(648.),
+                            height: Val::Px(96.),
                             position_type: PositionType::Relative,
                             border: UiRect {
                                 left: Val::Px(2.),
@@ -105,6 +105,7 @@ pub fn button_pressed_handler(
     mut next_game_state: ResMut<NextState<GameState>>,
     mut next_pause_state: ResMut<NextState<PauseState>>,
     mut next_main_menu_state: ResMut<NextState<MainMenuState>>,
+    mut next_pause_options_state: ResMut<NextState<PauseOptionsState>>,
 ) {
     for (interaction, name) in button_query.iter() {
         if *interaction != Interaction::Pressed {
@@ -112,9 +113,12 @@ pub fn button_pressed_handler(
         }
 
         match name.as_str() {
-            "Options" => return,
-            "Main Menu" => {
+            "Options" => {
+                next_pause_options_state.set(PauseOptionsState::Options);
+            }
+            "Return To Main Menu" => {
                 next_pause_state.set(PauseState::None);
+                next_pause_options_state.set(PauseOptionsState::None);
                 next_game_state.set(GameState::MainMenu);
                 next_main_menu_state.set(MainMenuState::MainMenu);
             }
@@ -124,17 +128,25 @@ pub fn button_pressed_handler(
 }
 
 // Toggle the paused state when Escape is pressed
-pub fn paused_by_keyboard_input_handler(
+pub fn pause_handler(
     keyboard_input: Res<ButtonInput<KeyCode>>,
-    state: Res<State<PauseState>>,
     mut next_state: ResMut<NextState<PauseState>>,
+    mut next_pause_options_state: ResMut<NextState<PauseOptionsState>>,
 ) {
     if keyboard_input.just_pressed(KeyCode::Escape) {
-        if state.get() == &PauseState::Paused {
-            next_state.set(PauseState::InGame);
-        } else {
-            next_state.set(PauseState::Paused);
-        }
+        next_state.set(PauseState::Paused);
+        next_pause_options_state.set(PauseOptionsState::Paused);
+    }
+}
+
+pub fn un_pause_handler(
+    keyboard_input: Res<ButtonInput<KeyCode>>,
+    mut next_state: ResMut<NextState<PauseState>>,
+    mut next_pause_options_state: ResMut<NextState<PauseOptionsState>>,
+) {
+    if keyboard_input.just_pressed(KeyCode::Escape) {
+        next_state.set(PauseState::InGame);
+        next_pause_options_state.set(PauseOptionsState::None);
     }
 }
 

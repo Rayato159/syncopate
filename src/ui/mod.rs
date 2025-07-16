@@ -1,3 +1,4 @@
+pub mod in_game_options_menu;
 pub mod main_menu;
 pub mod options;
 pub mod paused_menu;

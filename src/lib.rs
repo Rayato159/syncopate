@@ -16,6 +16,14 @@ pub enum GameState {
 }
 
 #[derive(States, Default, Debug, Clone, PartialEq, Eq, Hash)]
+pub enum MainMenuState {
+    None,
+    #[default]
+    MainMenu,
+    Options,
+}
+
+#[derive(States, Default, Debug, Clone, PartialEq, Eq, Hash)]
 pub enum PauseState {
     #[default]
     None,
@@ -24,10 +32,10 @@ pub enum PauseState {
 }
 
 #[derive(States, Default, Debug, Clone, PartialEq, Eq, Hash)]
-pub enum MainMenuState {
-    None,
+pub enum PauseOptionsState {
     #[default]
-    MainMenu,
+    None,
+    Paused,
     Options,
 }
 

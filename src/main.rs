@@ -7,7 +7,7 @@ use bevy_kira_audio::prelude::*;
 use bevy_light_2d::prelude::*;
 use bevy_rapier2d::prelude::*;
 use syncopate::{
-    GameState, MainMenuState, PauseState, camera,
+    GameState, MainMenuState, PauseOptionsState, PauseState, camera,
     characters::thunwa,
     sounds, terrains,
     ui::{self, main_menu::MainMenuLightFlickerTimer},
@@ -65,6 +65,7 @@ fn main() {
         .init_state::<GameState>()
         .init_state::<MainMenuState>()
         .init_state::<PauseState>()
+        .init_state::<PauseOptionsState>()
         .configure_sets(
             Startup,
             (
@@ -193,23 +194,49 @@ fn main() {
         )
         .add_systems(
             Update,
-            ui::paused_menu::paused_by_keyboard_input_handler
+            ui::paused_menu::pause_handler
                 .in_set(GameUpdateSet::UI)
-                .run_if(in_state(GameState::InGame)),
+                .run_if(in_state(PauseState::InGame))
+                .run_if(in_state(PauseOptionsState::None)),
         )
         .add_systems(
-            OnEnter(PauseState::Paused),
-            ui::paused_menu::spawn_paused_menu.in_set(GameStartUpSet::UI),
+            Update,
+            ui::paused_menu::un_pause_handler
+                .in_set(GameUpdateSet::UI)
+                .run_if(in_state(PauseState::Paused))
+                .run_if(in_state(PauseOptionsState::Paused)),
         )
         .add_systems(
             Update,
             ui::paused_menu::button_pressed_handler
                 .in_set(GameUpdateSet::UI)
-                .run_if(in_state(PauseState::Paused)),
+                .run_if(in_state(PauseState::Paused))
+                .run_if(in_state(PauseOptionsState::Paused)),
         )
         .add_systems(
-            OnExit(PauseState::Paused),
+            OnEnter(PauseOptionsState::Paused),
+            ui::paused_menu::spawn_paused_menu.in_set(GameStartUpSet::UI),
+        )
+        .add_systems(
+            OnExit(PauseOptionsState::Paused),
             ui::paused_menu::despawn_paused_menu.in_set(GameUpdateSet::UI),
+        )
+        .add_systems(
+            OnEnter(PauseOptionsState::Options),
+            (ui::in_game_options_menu::spawn_paused_options_menu,).in_set(GameStartUpSet::UI),
+        )
+        .add_systems(
+            OnExit(PauseOptionsState::Options),
+            (ui::in_game_options_menu::despawn_paused_options_menu,).in_set(GameUpdateSet::UI),
+        )
+        .add_systems(
+            Update,
+            (
+                ui::in_game_options_menu::button_pressed_handler,
+                ui::in_game_options_menu::back_to_options_handler,
+            )
+                .in_set(GameUpdateSet::UI)
+                .run_if(in_state(PauseOptionsState::Options)),
         )
         .run();
 }
