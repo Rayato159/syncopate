@@ -1,12 +1,12 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, window::WindowMode};
 
-use crate::MainMenuState;
+use crate::{GameOptions, MainMenuState, WindowModeSelection};
 
 #[derive(Component)]
 pub struct OptionsUI;
 
 #[derive(Component)]
-pub struct OptionsMenu;
+pub struct ScreenModeButton;
 
 pub fn spawn_options_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
     let font = asset_server.load("ui/fonts/pixeloid_mono.ttf");
@@ -50,96 +50,193 @@ pub fn spawn_options_menu(mut commands: Commands, asset_server: Res<AssetServer>
                     ));
                 });
         })
-        .with_children(|parent| {
-            parent
-                .spawn((
-                    OptionsMenu,
-                    Name::new("Mode"),
-                    Button,
-                    Node {
-                        width: Val::Px(502.),
-                        height: Val::Px(88.),
-                        position_type: PositionType::Relative,
-                        border: UiRect {
-                            left: Val::Px(2.),
-                            right: Val::Px(2.),
-                            top: Val::Px(2.),
-                            bottom: Val::Px(2.),
+        .with_children(|parent_1| {
+            parent_1
+                .spawn(Node {
+                    width: Val::Percent(80.),
+                    flex_direction: FlexDirection::Row,
+                    justify_content: JustifyContent::SpaceAround,
+                    align_items: AlignItems::Center,
+                    position_type: PositionType::Relative,
+                    ..Default::default()
+                })
+                .with_children(|parent_2| {
+                    parent_2.spawn((
+                        Text::new("Screen Mode"),
+                        TextColor(Color::WHITE),
+                        TextLayout::new_with_justify(JustifyText::Center),
+                        TextFont {
+                            font: font.clone(),
+                            font_size: 48.,
+                            ..Default::default()
                         },
-                        ..Default::default()
-                    },
-                    BorderColor(Color::WHITE),
-                    BackgroundColor(Color::WHITE.with_alpha(0.0)),
-                ))
-                .with_children(|parent| {
-                    parent
+                    ));
+
+                    parent_2
                         .spawn(Node {
-                            width: Val::Percent(100.),
-                            height: Val::Percent(100.),
-                            justify_content: JustifyContent::Center,
+                            flex_direction: FlexDirection::Column,
+                            row_gap: Val::Px(32.),
                             align_items: AlignItems::Center,
+                            position_type: PositionType::Relative,
                             ..Default::default()
                         })
-                        .with_children(|parent| {
-                            parent.spawn((
-                                Text::new("Screen Mode"),
-                                TextColor(Color::WHITE),
-                                TextLayout::new_with_justify(JustifyText::Center),
-                                TextFont {
-                                    font: font.clone(),
-                                    font_size: 48.,
-                                    ..Default::default()
-                                },
-                            ));
+                        .with_children(|parent_3| {
+                            parent_3
+                                .spawn((
+                                    ScreenModeButton,
+                                    Name::new("Fullscreen"),
+                                    Button,
+                                    Node {
+                                        width: Val::Px(502.),
+                                        height: Val::Px(88.),
+                                        position_type: PositionType::Relative,
+                                        border: UiRect {
+                                            left: Val::Px(2.),
+                                            right: Val::Px(2.),
+                                            top: Val::Px(2.),
+                                            bottom: Val::Px(2.),
+                                        },
+                                        ..Default::default()
+                                    },
+                                    BorderColor(Color::WHITE),
+                                    BackgroundColor(Color::WHITE.with_alpha(0.0)),
+                                ))
+                                .with_children(|parent| {
+                                    parent
+                                        .spawn(Node {
+                                            width: Val::Percent(100.),
+                                            height: Val::Percent(100.),
+                                            justify_content: JustifyContent::Center,
+                                            align_items: AlignItems::Center,
+                                            ..Default::default()
+                                        })
+                                        .with_children(|parent| {
+                                            parent.spawn((
+                                                Text::new("Fullscreen"),
+                                                TextColor(Color::WHITE),
+                                                TextLayout::new_with_justify(JustifyText::Center),
+                                                TextFont {
+                                                    font: font.clone(),
+                                                    font_size: 48.,
+                                                    ..Default::default()
+                                                },
+                                            ));
+                                        });
+                                });
+
+                            parent_3
+                                .spawn((
+                                    ScreenModeButton,
+                                    Name::new("Windowed"),
+                                    Button,
+                                    Node {
+                                        width: Val::Px(502.),
+                                        height: Val::Px(88.),
+                                        position_type: PositionType::Relative,
+                                        border: UiRect {
+                                            left: Val::Px(2.),
+                                            right: Val::Px(2.),
+                                            top: Val::Px(2.),
+                                            bottom: Val::Px(2.),
+                                        },
+                                        ..Default::default()
+                                    },
+                                    BorderColor(Color::WHITE),
+                                    BackgroundColor(Color::WHITE.with_alpha(0.0)),
+                                ))
+                                .with_children(|parent| {
+                                    parent
+                                        .spawn(Node {
+                                            width: Val::Percent(100.),
+                                            height: Val::Percent(100.),
+                                            justify_content: JustifyContent::Center,
+                                            align_items: AlignItems::Center,
+                                            ..Default::default()
+                                        })
+                                        .with_children(|parent| {
+                                            parent.spawn((
+                                                Text::new("Windowed"),
+                                                TextColor(Color::WHITE),
+                                                TextLayout::new_with_justify(JustifyText::Center),
+                                                TextFont {
+                                                    font: font.clone(),
+                                                    font_size: 48.,
+                                                    ..Default::default()
+                                                },
+                                            ));
+                                        });
+                                });
                         });
                 });
 
-            parent
-                .spawn((
-                    OptionsMenu,
-                    Name::new("Master Volume"),
-                    Button,
-                    Node {
-                        width: Val::Px(502.),
-                        height: Val::Px(88.),
-                        position_type: PositionType::Relative,
-                        border: UiRect {
-                            left: Val::Px(2.),
-                            right: Val::Px(2.),
-                            top: Val::Px(2.),
-                            bottom: Val::Px(2.),
-                        },
-                        ..Default::default()
-                    },
-                    BorderColor(Color::WHITE),
-                    BackgroundColor(Color::WHITE.with_alpha(0.0)),
-                ))
-                .with_children(|parent| {
-                    parent
-                        .spawn(Node {
-                            width: Val::Percent(100.),
-                            height: Val::Percent(100.),
-                            justify_content: JustifyContent::Center,
-                            align_items: AlignItems::Center,
+            parent_1
+                .spawn(Node {
+                    width: Val::Percent(80.),
+                    flex_direction: FlexDirection::Row,
+                    justify_content: JustifyContent::SpaceAround,
+                    align_items: AlignItems::Center,
+                    position_type: PositionType::Relative,
+                    ..Default::default()
+                })
+                .with_children(|parent_2| {
+                    parent_2.spawn((
+                        Text::new("Music Volume"),
+                        TextColor(Color::WHITE),
+                        TextLayout::new_with_justify(JustifyText::Center),
+                        TextFont {
+                            font: font.clone(),
+                            font_size: 48.,
                             ..Default::default()
-                        })
-                        .with_children(|parent| {
-                            parent.spawn((
-                                Text::new("Master Volume"),
-                                TextColor(Color::WHITE),
-                                TextLayout::new_with_justify(JustifyText::Center),
-                                TextFont {
-                                    font: font.clone(),
-                                    font_size: 48.,
-                                    ..Default::default()
+                        },
+                    ));
+                })
+                .with_children(|parent_2| {
+                    parent_2
+                        .spawn((
+                            Name::new("Music Volume"),
+                            Button,
+                            Node {
+                                width: Val::Px(502.),
+                                height: Val::Px(88.),
+                                margin: UiRect::right(Val::Px(16.)),
+                                position_type: PositionType::Relative,
+                                border: UiRect {
+                                    left: Val::Px(2.),
+                                    right: Val::Px(2.),
+                                    top: Val::Px(2.),
+                                    bottom: Val::Px(2.),
                                 },
-                            ));
+                                ..Default::default()
+                            },
+                            BorderColor(Color::WHITE),
+                            BackgroundColor(Color::WHITE.with_alpha(1.0)),
+                        ))
+                        .with_children(|parent| {
+                            parent
+                                .spawn(Node {
+                                    width: Val::Percent(100.),
+                                    height: Val::Percent(100.),
+                                    justify_content: JustifyContent::Center,
+                                    align_items: AlignItems::Center,
+                                    ..Default::default()
+                                })
+                                .with_children(|parent| {
+                                    parent.spawn((
+                                        Text::new("100%"),
+                                        TextColor(Color::WHITE),
+                                        TextLayout::new_with_justify(JustifyText::Center),
+                                        TextFont {
+                                            font: font.clone(),
+                                            font_size: 48.,
+                                            ..Default::default()
+                                        },
+                                    ));
+                                });
                         });
                 });
 
-            parent
+            parent_1
                 .spawn((
-                    OptionsMenu,
                     Name::new("Back"),
                     Button,
                     Node {
@@ -192,9 +289,70 @@ pub fn button_pressed_handler(
         }
 
         match name.as_str() {
-            "Screen Mode" => return,
-            "Master Volume" => return,
             "Back" => next_state.set(MainMenuState::MainMenu),
+            _ => return,
+        }
+    }
+}
+
+pub fn screen_mode_button_marker(
+    mut button_query: Query<(&Name, &mut BackgroundColor), With<ScreenModeButton>>,
+    game_options: Res<GameOptions>,
+) {
+    for (name, mut background_color) in button_query.iter_mut() {
+        match game_options.window_mode {
+            WindowModeSelection::Fullscreen => {
+                if name.as_str() == "Fullscreen" {
+                    *background_color = BackgroundColor(Color::WHITE.with_alpha(0.15));
+                } else {
+                    *background_color = BackgroundColor(Color::NONE);
+                }
+            }
+            WindowModeSelection::Windowed => {
+                if name.as_str() == "Windowed" {
+                    *background_color = BackgroundColor(Color::WHITE.with_alpha(0.15));
+                } else {
+                    *background_color = BackgroundColor(Color::NONE);
+                }
+            }
+        }
+    }
+}
+
+pub fn screen_mode_button_handler(
+    button_query: Query<(&Interaction, &Name), Changed<Interaction>>,
+    mut game_options: ResMut<GameOptions>,
+    mut windows_query: Query<&mut Window>,
+) {
+    for (interaction, name) in button_query.iter() {
+        if *interaction != Interaction::Pressed {
+            continue;
+        }
+
+        match name.as_str() {
+            "Fullscreen" => {
+                if game_options.window_mode == WindowModeSelection::Fullscreen {
+                    return; // Already in fullscreen mode
+                }
+
+                if let Ok(mut window) = windows_query.single_mut() {
+                    window.mode = WindowMode::Fullscreen(
+                        MonitorSelection::Primary,
+                        VideoModeSelection::Current,
+                    );
+                    game_options.window_mode = WindowModeSelection::Fullscreen;
+                }
+            }
+            "Windowed" => {
+                if game_options.window_mode == WindowModeSelection::Windowed {
+                    return; // Already in windowed mode
+                }
+
+                if let Ok(mut window) = windows_query.single_mut() {
+                    window.mode = WindowMode::Windowed;
+                    game_options.window_mode = WindowModeSelection::Windowed;
+                }
+            }
             _ => return,
         }
     }

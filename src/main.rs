@@ -7,7 +7,7 @@ use bevy_kira_audio::prelude::*;
 use bevy_light_2d::prelude::*;
 use bevy_rapier2d::prelude::*;
 use syncopate::{
-    GameState, MainMenuState, PauseOptionsState, PauseState, camera,
+    GameOptions, GameState, MainMenuState, PauseOptionsState, PauseState, camera,
     characters::thunwa,
     sounds, terrains,
     ui::{self, main_menu::MainMenuLightFlickerTimer},
@@ -33,6 +33,7 @@ pub enum GameUpdateSet {
 fn main() {
     App::new()
         .insert_resource(ClearColor(Color::BLACK))
+        .insert_resource(GameOptions::default())
         .insert_resource(MainMenuLightFlickerTimer::default())
         .add_plugins((
             DefaultPlugins.set(WindowPlugin {
@@ -40,12 +41,15 @@ fn main() {
                     title: "Syncopate".into(),
                     resizable: true,
                     resize_constraints: WindowResizeConstraints {
-                        min_width: 640.,
-                        min_height: 320.,
+                        min_width: 1280.,
+                        min_height: 640.,
                         max_width: 1920.,
                         max_height: 1080.,
                     },
-                    mode: WindowMode::BorderlessFullscreen(MonitorSelection::Primary),
+                    mode: WindowMode::Fullscreen(
+                        MonitorSelection::Primary,
+                        VideoModeSelection::Current,
+                    ),
                     ..Default::default()
                 }),
                 ..Default::default()
@@ -106,6 +110,16 @@ fn main() {
         .add_systems(
             OnEnter(MainMenuState::Options),
             ui::options::spawn_options_menu.in_set(GameStartUpSet::UI),
+        )
+        .add_systems(
+            Update,
+            (
+                ui::options::screen_mode_button_handler,
+                ui::options::screen_mode_button_marker,
+            )
+                .in_set(GameUpdateSet::UI)
+                .run_if(in_state(GameState::MainMenu))
+                .run_if(in_state(MainMenuState::Options)),
         )
         .add_systems(
             OnExit(MainMenuState::Options),

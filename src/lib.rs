@@ -39,10 +39,28 @@ pub enum PauseOptionsState {
     Options,
 }
 
-pub fn global_bevy_rapier_config(
-    mut rapier_config: Query<&mut RapierConfiguration>,
-    // other params...
-) {
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum WindowModeSelection {
+    Fullscreen,
+    Windowed,
+}
+
+#[derive(Resource, Clone, Debug)]
+pub struct GameOptions {
+    pub window_mode: WindowModeSelection,
+    pub music_volume: f64,
+}
+
+impl Default for GameOptions {
+    fn default() -> Self {
+        Self {
+            window_mode: WindowModeSelection::Fullscreen,
+            music_volume: 1.0,
+        }
+    }
+}
+
+pub fn global_bevy_rapier_config(mut rapier_config: Query<&mut RapierConfiguration>) {
     if let Ok(mut rapier_config) = rapier_config.single_mut() {
         rapier_config.gravity = Vec2::ZERO;
     }

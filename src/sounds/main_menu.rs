@@ -1,10 +1,16 @@
 use bevy::prelude::*;
 use bevy_kira_audio::prelude::*;
 
-pub fn play_soundtrack(asset_server: Res<AssetServer>, audio: Res<Audio>) {
+use crate::GameOptions;
+
+pub fn play_soundtrack(
+    asset_server: Res<AssetServer>,
+    game_options: Res<GameOptions>,
+    audio: Res<Audio>,
+) {
     audio
         .play(asset_server.load("soundtracks/main_menu/ready_or_not.ogg"))
-        .with_volume(1.0)
+        .with_volume(game_options.music_volume)
         .looped();
 }
 
