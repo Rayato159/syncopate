@@ -46,10 +46,7 @@ fn main() {
                         max_width: 1920.,
                         max_height: 1080.,
                     },
-                    mode: WindowMode::Fullscreen(
-                        MonitorSelection::Primary,
-                        VideoModeSelection::Current,
-                    ),
+                    mode: WindowMode::BorderlessFullscreen(MonitorSelection::Primary),
                     ..Default::default()
                 }),
                 ..Default::default()
@@ -114,8 +111,10 @@ fn main() {
         .add_systems(
             Update,
             (
-                ui::options::screen_mode_button_handler,
-                ui::options::screen_mode_button_marker,
+                ui::screen_mode_button_handler,
+                ui::screen_mode_button_marker,
+                ui::options::music_volume_button_handler,
+                ui::options::back_by_keyboard_input_handler,
             )
                 .in_set(GameUpdateSet::UI)
                 .run_if(in_state(GameState::MainMenu))
@@ -124,16 +123,6 @@ fn main() {
         .add_systems(
             OnExit(MainMenuState::Options),
             ui::options::despawn_options_menu.in_set(GameUpdateSet::UI),
-        )
-        .add_systems(
-            Update,
-            (
-                ui::options::button_pressed_handler,
-                ui::options::back_by_keyboard_input_handler,
-            )
-                .in_set(GameUpdateSet::UI)
-                .run_if(in_state(GameState::MainMenu))
-                .run_if(in_state(MainMenuState::Options)),
         )
         .add_systems(
             OnExit(GameState::MainMenu),
@@ -246,7 +235,9 @@ fn main() {
         .add_systems(
             Update,
             (
-                ui::in_game_options_menu::button_pressed_handler,
+                ui::screen_mode_button_handler,
+                ui::screen_mode_button_marker,
+                ui::in_game_options_menu::music_volume_button_handler,
                 ui::in_game_options_menu::back_to_options_handler,
             )
                 .in_set(GameUpdateSet::UI)

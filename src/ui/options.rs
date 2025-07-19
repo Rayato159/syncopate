@@ -1,16 +1,13 @@
-use bevy::{prelude::*, window::WindowMode};
+use bevy::prelude::*;
 use bevy_kira_audio::prelude::*;
 
-use crate::{GameOptions, MainMenuState, WindowModeSelection};
+use crate::{
+    GameOptions, MainMenuState,
+    ui::{MusicVolumeLevel, ScreenModeButton},
+};
 
 #[derive(Component)]
 pub struct OptionsUI;
-
-#[derive(Component)]
-pub struct ScreenModeButton;
-
-#[derive(Component)]
-pub struct MusicVolumeLevel;
 
 pub fn spawn_options_menu(
     mut commands: Commands,
@@ -352,7 +349,7 @@ pub fn spawn_options_menu(
         });
 }
 
-pub fn button_pressed_handler(
+pub fn music_volume_button_handler(
     button_query: Query<(&Interaction, &Name), Changed<Interaction>>,
     mut music_volume_query: Query<&mut Node, With<MusicVolumeLevel>>,
     kira_audio: Res<Audio>,
@@ -371,7 +368,7 @@ pub fn button_pressed_handler(
                     return; // Volume is already at maximum
                 }
 
-                game_options.music_volume += 0.1;
+                game_options.music_volume = (game_options.music_volume + 0.1).clamp(0.0, 1.0);
 
                 for mut node in music_volume_query.iter_mut() {
                     node.width = Val::Percent(game_options.music_volume as f32 * 100.0);
@@ -384,72 +381,13 @@ pub fn button_pressed_handler(
                     return; // Volume is already at minimum
                 }
 
-                game_options.music_volume -= 0.1;
+                game_options.music_volume = (game_options.music_volume - 0.1).clamp(0.0, 1.0);
 
                 for mut node in music_volume_query.iter_mut() {
                     node.width = Val::Percent(game_options.music_volume as f32 * 100.0);
                 }
 
                 kira_audio.set_volume(game_options.music_volume);
-            }
-            _ => return,
-        }
-    }
-}
-
-pub fn screen_mode_button_marker(
-    mut button_query: Query<(&Name, &mut BackgroundColor), With<ScreenModeButton>>,
-    game_options: Res<GameOptions>,
-) {
-    for (name, mut background_color) in button_query.iter_mut() {
-        match game_options.window_mode {
-            WindowModeSelection::Fullscreen => {
-                if name.as_str() == "Fullscreen" {
-                    *background_color = BackgroundColor(Color::WHITE.with_alpha(0.15));
-                }
-            }
-            WindowModeSelection::Windowed => {
-                if name.as_str() == "Windowed" {
-                    *background_color = BackgroundColor(Color::WHITE.with_alpha(0.15));
-                }
-            }
-        }
-    }
-}
-
-pub fn screen_mode_button_handler(
-    button_query: Query<(&Interaction, &Name), Changed<Interaction>>,
-    mut game_options: ResMut<GameOptions>,
-    mut windows_query: Query<&mut Window>,
-) {
-    for (interaction, name) in button_query.iter() {
-        if *interaction != Interaction::Pressed {
-            continue;
-        }
-
-        match name.as_str() {
-            "Fullscreen" => {
-                if game_options.window_mode == WindowModeSelection::Fullscreen {
-                    return; // Already in fullscreen mode
-                }
-
-                if let Ok(mut window) = windows_query.single_mut() {
-                    window.mode = WindowMode::Fullscreen(
-                        MonitorSelection::Primary,
-                        VideoModeSelection::Current,
-                    );
-                    game_options.window_mode = WindowModeSelection::Fullscreen;
-                }
-            }
-            "Windowed" => {
-                if game_options.window_mode == WindowModeSelection::Windowed {
-                    return; // Already in windowed mode
-                }
-
-                if let Ok(mut window) = windows_query.single_mut() {
-                    window.mode = WindowMode::Windowed;
-                    game_options.window_mode = WindowModeSelection::Windowed;
-                }
             }
             _ => return,
         }
