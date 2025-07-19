@@ -1,4 +1,5 @@
 use bevy::{prelude::*, window::WindowMode};
+use bevy_kira_audio::prelude::*;
 
 use crate::{GameOptions, MainMenuState, WindowModeSelection};
 
@@ -8,7 +9,14 @@ pub struct OptionsUI;
 #[derive(Component)]
 pub struct ScreenModeButton;
 
-pub fn spawn_options_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
+#[derive(Component)]
+pub struct MusicVolumeLevel;
+
+pub fn spawn_options_menu(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    game_options: Res<GameOptions>,
+) {
     let font = asset_server.load("ui/fonts/pixeloid_mono.ttf");
     let font_bold = asset_server.load("ui/fonts/pixeloid_mono_bold.ttf");
 
@@ -83,9 +91,9 @@ pub fn spawn_options_menu(mut commands: Commands, asset_server: Res<AssetServer>
                         .with_children(|parent_3| {
                             parent_3
                                 .spawn((
+                                    Button,
                                     ScreenModeButton,
                                     Name::new("Fullscreen"),
-                                    Button,
                                     Node {
                                         width: Val::Px(502.),
                                         height: Val::Px(88.),
@@ -126,9 +134,9 @@ pub fn spawn_options_menu(mut commands: Commands, asset_server: Res<AssetServer>
 
                             parent_3
                                 .spawn((
+                                    Button,
                                     ScreenModeButton,
                                     Name::new("Windowed"),
-                                    Button,
                                     Node {
                                         width: Val::Px(502.),
                                         height: Val::Px(88.),
@@ -193,8 +201,6 @@ pub fn spawn_options_menu(mut commands: Commands, asset_server: Res<AssetServer>
                 .with_children(|parent_2| {
                     parent_2
                         .spawn((
-                            Name::new("Music Volume"),
-                            Button,
                             Node {
                                 width: Val::Px(502.),
                                 height: Val::Px(88.),
@@ -209,20 +215,87 @@ pub fn spawn_options_menu(mut commands: Commands, asset_server: Res<AssetServer>
                                 ..Default::default()
                             },
                             BorderColor(Color::WHITE),
-                            BackgroundColor(Color::WHITE.with_alpha(1.0)),
                         ))
-                        .with_children(|parent| {
-                            parent
+                        .with_children(|parent_3| {
+                            parent_3
+                                .spawn((
+                                    Button,
+                                    Name::new("Decrease Volume"),
+                                    Node {
+                                        width: Val::Px(56.),
+                                        height: Val::Px(88.),
+                                        flex_direction: FlexDirection::Column,
+                                        justify_content: JustifyContent::Center,
+                                        align_items: AlignItems::Center,
+                                        position_type: PositionType::Relative,
+                                        ..Default::default()
+                                    },
+                                ))
+                                .with_children(|parent_2| {
+                                    parent_2.spawn((
+                                        Text::new("-"),
+                                        TextColor(Color::WHITE),
+                                        TextLayout::new_with_justify(JustifyText::Center),
+                                        TextFont {
+                                            font: font.clone(),
+                                            font_size: 48.,
+                                            ..Default::default()
+                                        },
+                                    ));
+                                });
+
+                            parent_3
                                 .spawn(Node {
                                     width: Val::Percent(100.),
                                     height: Val::Percent(100.),
-                                    justify_content: JustifyContent::Center,
+                                    justify_content: JustifyContent::FlexStart,
                                     align_items: AlignItems::Center,
                                     ..Default::default()
                                 })
-                                .with_children(|parent| {
-                                    parent.spawn((
-                                        Text::new("100%"),
+                                .with_children(|parent_4| {
+                                    parent_4
+                                        .spawn((Node {
+                                            width: Val::Percent(100.),
+                                            height: Val::Percent(100.),
+                                            ..Default::default()
+                                        },))
+                                        .with_children(|parent_5| {
+                                            parent_5.spawn((
+                                                MusicVolumeLevel,
+                                                Node {
+                                                    width: Val::Percent(
+                                                        game_options.music_volume as f32 * 100.0,
+                                                    ),
+                                                    height: Val::Percent(100.),
+                                                    ..Default::default()
+                                                },
+                                                BackgroundColor(Color::srgba(
+                                                    163. / 255.,
+                                                    220. / 255.,
+                                                    154. / 255.,
+                                                    1.0,
+                                                )),
+                                            ));
+                                        });
+                                });
+
+                            parent_3
+                                .spawn((
+                                    Button,
+                                    Name::new("Increase Volume"),
+                                    Node {
+                                        width: Val::Px(56.),
+                                        height: Val::Px(88.),
+                                        flex_direction: FlexDirection::Column,
+                                        justify_content: JustifyContent::Center,
+                                        align_items: AlignItems::Center,
+                                        position_type: PositionType::Relative,
+                                        ..Default::default()
+                                    },
+                                ))
+                                .with_children(|parent_2| {
+                                    parent_2.spawn((
+                                        Text::new("+"),
                                         TextColor(Color::WHITE),
                                         TextLayout::new_with_justify(JustifyText::Center),
                                         TextFont {
@@ -281,6 +354,9 @@ pub fn spawn_options_menu(mut commands: Commands, asset_server: Res<AssetServer>
 
 pub fn button_pressed_handler(
     button_query: Query<(&Interaction, &Name), Changed<Interaction>>,
+    mut music_volume_query: Query<&mut Node, With<MusicVolumeLevel>>,
+    kira_audio: Res<Audio>,
+    mut game_options: ResMut<GameOptions>,
     mut next_state: ResMut<NextState<MainMenuState>>,
 ) {
     for (interaction, name) in button_query.iter() {
@@ -290,6 +366,32 @@ pub fn button_pressed_handler(
 
         match name.as_str() {
             "Back" => next_state.set(MainMenuState::MainMenu),
+            "Increase Volume" => {
+                if game_options.music_volume >= 1.0 {
+                    return; // Volume is already at maximum
+                }
+
+                game_options.music_volume += 0.1;
+
+                for mut node in music_volume_query.iter_mut() {
+                    node.width = Val::Percent(game_options.music_volume as f32 * 100.0);
+                }
+
+                kira_audio.set_volume(game_options.music_volume);
+            }
+            "Decrease Volume" => {
+                if game_options.music_volume <= 0.0 {
+                    return; // Volume is already at minimum
+                }
+
+                game_options.music_volume -= 0.1;
+
+                for mut node in music_volume_query.iter_mut() {
+                    node.width = Val::Percent(game_options.music_volume as f32 * 100.0);
+                }
+
+                kira_audio.set_volume(game_options.music_volume);
+            }
             _ => return,
         }
     }
@@ -304,15 +406,11 @@ pub fn screen_mode_button_marker(
             WindowModeSelection::Fullscreen => {
                 if name.as_str() == "Fullscreen" {
                     *background_color = BackgroundColor(Color::WHITE.with_alpha(0.15));
-                } else {
-                    *background_color = BackgroundColor(Color::NONE);
                 }
             }
             WindowModeSelection::Windowed => {
                 if name.as_str() == "Windowed" {
                     *background_color = BackgroundColor(Color::WHITE.with_alpha(0.15));
-                } else {
-                    *background_color = BackgroundColor(Color::NONE);
                 }
             }
         }
