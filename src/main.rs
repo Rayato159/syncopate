@@ -112,7 +112,6 @@ fn main() {
             Update,
             (
                 ui::screen_mode_button_handler,
-                ui::screen_mode_button_marker,
                 ui::options::music_volume_button_handler,
                 ui::options::back_by_keyboard_input_handler,
             )
@@ -236,7 +235,6 @@ fn main() {
             Update,
             (
                 ui::screen_mode_button_handler,
-                ui::screen_mode_button_marker,
                 ui::in_game_options_menu::music_volume_button_handler,
                 ui::in_game_options_menu::back_to_options_handler,
             )

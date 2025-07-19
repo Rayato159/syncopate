@@ -13,28 +13,8 @@ pub struct ScreenModeButton;
 #[derive(Component)]
 pub struct MusicVolumeLevel;
 
-pub fn screen_mode_button_marker(
-    mut button_query: Query<(&Name, &mut BackgroundColor), With<ScreenModeButton>>,
-    game_options: Res<GameOptions>,
-) {
-    for (name, mut background_color) in button_query.iter_mut() {
-        match game_options.window_mode {
-            WindowModeSelection::Fullscreen => {
-                if name.as_str() == "Fullscreen" {
-                    *background_color = BackgroundColor(Color::WHITE.with_alpha(0.15));
-                }
-            }
-            WindowModeSelection::Windowed => {
-                if name.as_str() == "Windowed" {
-                    *background_color = BackgroundColor(Color::WHITE.with_alpha(0.15));
-                }
-            }
-        }
-    }
-}
-
 pub fn screen_mode_button_handler(
-    button_query: Query<(&Interaction, &Name), Changed<Interaction>>,
+    button_query: Query<(&Interaction, &Name), (Changed<Interaction>, With<ScreenModeButton>)>,
     mut game_options: ResMut<GameOptions>,
     mut windows_query: Query<&mut Window>,
 ) {
