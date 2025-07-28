@@ -15,9 +15,6 @@ pub struct MainMenuUI;
 #[derive(Component)]
 pub struct MainMenuLight;
 
-#[derive(Component)]
-pub struct Menu;
-
 const MAIN_MENU_LIST: [&str; 4] = ["New Game", "Load Game", "Options", "Quit"];
 
 pub fn spawn_main_menu_scene(mut commands: Commands, asset_server: Res<AssetServer>) {
@@ -85,7 +82,6 @@ pub fn spawn_main_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
             MAIN_MENU_LIST.iter().for_each(|label| {
                 parent
                     .spawn((
-                        Menu,
                         Name::new(label.to_string()),
                         Button,
                         Node {
