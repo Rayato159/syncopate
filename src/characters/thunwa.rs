@@ -12,16 +12,26 @@ const PLAYER_COLLISION_GROUP: u32 = 0b0010;
 const WALL_COLLISION_GROUP: u32 = 0b0100;
 const ZOMBIE_COLLISION_GROUP: u32 = 0b0001;
 
+#[derive(Resource)]
+pub struct ThunwaHealth {
+    pub current: f32,
+    pub max: f32,
+}
+
+impl Default for ThunwaHealth {
+    fn default() -> Self {
+        ThunwaHealth {
+            current: 100.0,
+            max: 100.0,
+        }
+    }
+}
+
 #[derive(Component)]
 pub struct Thunwa {
     pub speed: f32,
     pub last_direction: Vec3,
-    pub health: f32,
-    pub max_health: f32,
 }
-
-#[derive(Component)]
-pub struct PlayerHealth;
 
 #[derive(Component)]
 pub struct ThunwaCollider;
@@ -34,10 +44,7 @@ pub fn setup_thunwa(mut commands: Commands, asset_server: Res<AssetServer>) {
             Thunwa {
                 speed: 160.,
                 last_direction: Vec3::ZERO,
-                health: 100.0,
-                max_health: 100.0,
             },
-            PlayerHealth,
             AseAnimation {
                 aseprite,
                 animation: Animation::tag("idle-front").with_speed(1.),

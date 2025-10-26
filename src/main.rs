@@ -8,7 +8,10 @@ use bevy_light_2d::prelude::*;
 use bevy_rapier2d::prelude::*;
 use syncopate::{
     GameOptions, GameState, MainMenuState, PauseOptionsState, PauseState, camera,
-    characters::{thunwa, zombie},
+    characters::{
+        thunwa::{self, ThunwaHealth},
+        zombie,
+    },
     pause_physics_system, sounds, terrains,
     ui::{self, main_menu::MainMenuLightFlickerTimer},
 };
@@ -36,6 +39,7 @@ fn main() {
         .insert_resource(ClearColor(Color::BLACK))
         .insert_resource(GameOptions::default())
         .insert_resource(MainMenuLightFlickerTimer::default())
+        .insert_resource(ThunwaHealth::default())
         .add_plugins((
             DefaultPlugins.set(WindowPlugin {
                 primary_window: Some(Window {

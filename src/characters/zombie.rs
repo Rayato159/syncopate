@@ -5,7 +5,7 @@ use pathfinding::prelude::*;
 use rand;
 
 use crate::{
-    characters::thunwa::{PlayerHealth, Thunwa},
+    characters::thunwa::{Thunwa, ThunwaHealth},
     terrains::{DynamicsZOrder, GRID_SIZE, MAP_SIZE},
 };
 
@@ -45,17 +45,6 @@ pub struct ZombieConfig {
     pub max_zombies: usize,
 }
 
-#[derive(Resource)]
-pub struct PlayerHealthDisplay {
-    pub last_health: f32,
-}
-
-impl Default for PlayerHealthDisplay {
-    fn default() -> Self {
-        Self { last_health: 100.0 }
-    }
-}
-
 impl Default for ZombieConfig {
     fn default() -> Self {
         Self {
@@ -73,7 +62,6 @@ impl Default for ZombieConfig {
 pub fn setup_zombies(mut commands: Commands, asset_server: Res<AssetServer>) {
     // Insert zombie configuration resource
     commands.insert_resource(ZombieConfig::default());
-    commands.insert_resource(PlayerHealthDisplay::default());
 
     // Load zombie sprite
     let zombie_sprite = asset_server.load("characters/zombie/zombie_sprite.aseprite");
@@ -399,11 +387,12 @@ pub fn update_zombie_ai(
 
 pub fn zombie_attack_system(
     mut zombie_query: Query<(&mut Zombie, &Transform)>,
-    mut thunwa_query: Query<(Entity, &mut Thunwa, &Transform), (With<Thunwa>, Without<Zombie>)>,
+    mut thunwa_query: Query<&Transform, (With<Thunwa>, Without<Zombie>)>,
     mut collision_events: EventReader<CollisionEvent>,
+    mut thunwa_health: ResMut<ThunwaHealth>,
     time: Res<Time>,
 ) {
-    if let Ok((_thunwa_entity, mut thunwa, thunwa_transform)) = thunwa_query.single_mut() {
+    if let Ok(thunwa_transform) = thunwa_query.single_mut() {
         let thunwa_pos = thunwa_transform.translation.xy();
 
         // Update attack cooldowns
@@ -416,17 +405,17 @@ pub fn zombie_attack_system(
             // Check if zombie is close enough to attack
             if distance < 40.0 && zombie.attack_cooldown.finished() {
                 // Deal damage to player
-                thunwa.health = (thunwa.health - zombie.damage).max(0.0);
+                thunwa_health.current = (thunwa_health.current - zombie.damage).max(0.0);
                 println!(
                     "Zombie attacks player for {} damage! Player health: {}/{}",
-                    zombie.damage, thunwa.health, thunwa.max_health
+                    zombie.damage, thunwa_health.current, thunwa_health.max
                 );
                 zombie.attack_cooldown.reset();
 
                 // You could add a damage flash effect here
 
                 // Check if player is dead
-                if thunwa.health <= 0.0 {
+                if thunwa_health.current <= 0.0 {
                     println!("Player has been defeated by zombies!");
                     // You could trigger game over state here
                 }
@@ -435,31 +424,19 @@ pub fn zombie_attack_system(
 
         // Alternative: Use collision events for attack detection
         for collision_event in collision_events.read() {
-            if let CollisionEvent::Started(entity1, entity2, _) = collision_event {
-                // Check if collision is between zombie and player
-                let (zombie_entity, player_entity) =
-                    if zombie_query.contains(*entity1) && thunwa_query.contains(*entity2) {
-                        (*entity1, *entity2)
-                    } else if zombie_query.contains(*entity2) && thunwa_query.contains(*entity1) {
-                        (*entity2, *entity1)
-                    } else {
-                        continue;
-                    };
-
-                if let (Ok((mut zombie, _)), Ok((_, mut thunwa, _))) = (
-                    zombie_query.get_mut(zombie_entity),
-                    thunwa_query.get_mut(player_entity),
-                ) {
-                    if zombie.attack_cooldown.finished() {
-                        thunwa.health = (thunwa.health - zombie.damage).max(0.0);
+            if let CollisionEvent::Started(_, _, _) = collision_event {
+                for (mut zombie_entity, _) in zombie_query.iter_mut() {
+                    if zombie_entity.attack_cooldown.finished() {
+                        thunwa_health.current =
+                            (thunwa_health.current - zombie_entity.damage).max(0.0);
                         println!(
                             "Zombie hits player via collision! Player health: {}/{}",
-                            thunwa.health, thunwa.max_health
+                            thunwa_health.current, thunwa_health.max
                         );
-                        zombie.attack_cooldown.reset();
+                        zombie_entity.attack_cooldown.reset();
 
                         // Check if player is dead
-                        if thunwa.health <= 0.0 {
+                        if thunwa_health.current <= 0.0 {
                             println!("Player has been defeated by zombies!");
                             // You could trigger game over state here
                         }
@@ -480,15 +457,11 @@ pub fn update_zombie_animation_direction(mut zombie_query: Query<(&Velocity, &mu
     }
 }
 
-pub fn update_player_health_display(
-    thunwa_query: Query<&Thunwa, With<PlayerHealth>>,
-    mut health_display: ResMut<PlayerHealthDisplay>,
-) {
-    if let Ok(thunwa) = thunwa_query.single() {
-        // Only display health when it changes and is less than max
-        if thunwa.health != health_display.last_health && thunwa.health < thunwa.max_health {
-            println!("Player Health: {}/{}", thunwa.health, thunwa.max_health);
-            health_display.last_health = thunwa.health;
-        }
+pub fn update_player_health_display(thunwa_health: Res<ThunwaHealth>) {
+    if thunwa_health.current < thunwa_health.max {
+        println!(
+            "Player Health: {}/{}",
+            thunwa_health.current, thunwa_health.max
+        );
     }
 }
