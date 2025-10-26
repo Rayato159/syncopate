@@ -65,3 +65,28 @@ pub fn global_bevy_rapier_config(mut rapier_config: Query<&mut RapierConfigurati
         rapier_config.gravity = Vec2::ZERO;
     }
 }
+
+pub fn pause_physics_system(
+    pause_state: Res<State<PauseState>>,
+    mut rapier_config: Query<&mut RapierConfiguration>,
+) {
+    if let Ok(mut rapier_config) = rapier_config.single_mut() {
+        match pause_state.get() {
+            PauseState::InGame => {
+                // Game is running, enable physics
+                if !rapier_config.physics_pipeline_active {
+                    println!("🎮 Game resumed - Physics enabled");
+                }
+                rapier_config.physics_pipeline_active = true;
+            }
+            PauseState::Paused => {
+                // Game is paused, disable physics
+                if rapier_config.physics_pipeline_active {
+                    println!("⏸️  Game paused - Physics disabled");
+                }
+                rapier_config.physics_pipeline_active = false;
+            }
+            _ => {}
+        }
+    }
+}

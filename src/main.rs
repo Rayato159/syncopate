@@ -8,8 +8,8 @@ use bevy_light_2d::prelude::*;
 use bevy_rapier2d::prelude::*;
 use syncopate::{
     GameOptions, GameState, MainMenuState, PauseOptionsState, PauseState, camera,
-    characters::thunwa,
-    sounds, terrains,
+    characters::{thunwa, zombie},
+    pause_physics_system, sounds, terrains,
     ui::{self, main_menu::MainMenuLightFlickerTimer},
 };
 
@@ -27,6 +27,7 @@ pub enum GameUpdateSet {
     UI,
     Camera,
     Thunwa,
+    Zombie,
     CondoEntering,
 }
 
@@ -161,7 +162,12 @@ fn main() {
         )
         .add_systems(
             OnEnter(GameState::InGame),
-            (thunwa::setup_thunwa, camera::player_camera_setup).in_set(GameStartUpSet::Thunwa),
+            (
+                thunwa::setup_thunwa,
+                zombie::setup_zombies,
+                camera::player_camera_setup,
+            )
+                .in_set(GameStartUpSet::Thunwa),
         )
         .add_systems(
             OnExit(GameState::InGame),
@@ -170,6 +176,7 @@ fn main() {
                 sounds::condo_entering::stop_playing_soundtrack,
                 camera::despawn_player_camera,
                 thunwa::despawn_thunwa,
+                zombie::despawn_zombies,
             )
                 .in_set(GameUpdateSet::CondoEntering),
         )
@@ -177,7 +184,8 @@ fn main() {
             Update,
             thunwa::thunwa_camera_following
                 .in_set(GameUpdateSet::Thunwa)
-                .run_if(in_state(GameState::InGame)),
+                .run_if(in_state(GameState::InGame))
+                .run_if(in_state(PauseState::InGame)),
         )
         .add_systems(
             Update,
@@ -189,10 +197,24 @@ fn main() {
         )
         .add_systems(
             Update,
+            (
+                zombie::update_zombie_ai,
+                zombie::zombie_attack_system,
+                zombie::update_zombie_animation_direction,
+                zombie::update_player_health_display,
+            )
+                .in_set(GameUpdateSet::Zombie)
+                .after(GameStartUpSet::Thunwa)
+                .run_if(in_state(GameState::InGame))
+                .run_if(in_state(PauseState::InGame)),
+        )
+        .add_systems(
+            Update,
             terrains::condo_entering::update_z_order
                 .in_set(GameUpdateSet::CondoEntering)
                 .after(GameStartUpSet::Thunwa)
-                .run_if(in_state(GameState::InGame)),
+                .run_if(in_state(GameState::InGame))
+                .run_if(in_state(PauseState::InGame)),
         )
         .add_systems(
             Update,
@@ -200,6 +222,10 @@ fn main() {
                 .in_set(GameUpdateSet::UI)
                 .run_if(in_state(PauseState::InGame))
                 .run_if(in_state(PauseOptionsState::None)),
+        )
+        .add_systems(
+            Update,
+            pause_physics_system.run_if(in_state(GameState::InGame)),
         )
         .add_systems(
             Update,

@@ -7,11 +7,21 @@ use crate::{
     terrains::{GRID_SIZE, MAP_SIZE},
 };
 
+// Collision groups for physics
+const PLAYER_COLLISION_GROUP: u32 = 0b0010;
+const WALL_COLLISION_GROUP: u32 = 0b0100;
+const ZOMBIE_COLLISION_GROUP: u32 = 0b0001;
+
 #[derive(Component)]
 pub struct Thunwa {
     pub speed: f32,
     pub last_direction: Vec3,
+    pub health: f32,
+    pub max_health: f32,
 }
+
+#[derive(Component)]
+pub struct PlayerHealth;
 
 #[derive(Component)]
 pub struct ThunwaCollider;
@@ -24,7 +34,10 @@ pub fn setup_thunwa(mut commands: Commands, asset_server: Res<AssetServer>) {
             Thunwa {
                 speed: 160.,
                 last_direction: Vec3::ZERO,
+                health: 100.0,
+                max_health: 100.0,
             },
+            PlayerHealth,
             AseAnimation {
                 aseprite,
                 animation: Animation::tag("idle-front").with_speed(1.),
@@ -41,7 +54,15 @@ pub fn setup_thunwa(mut commands: Commands, asset_server: Res<AssetServer>) {
         ))
         .with_children(|parent| {
             parent
-                .spawn((ThunwaCollider, Collider::capsule_y(6., 6.)))
+                .spawn((
+                    ThunwaCollider,
+                    Collider::capsule_y(6., 6.),
+                    CollisionGroups::new(
+                        Group::from_bits(PLAYER_COLLISION_GROUP).unwrap(),
+                        Group::from_bits(ZOMBIE_COLLISION_GROUP | WALL_COLLISION_GROUP).unwrap(),
+                    ),
+                    ActiveEvents::COLLISION_EVENTS,
+                ))
                 .insert(Transform::from_xyz(0.0, -16.0, 0.));
         });
 }
