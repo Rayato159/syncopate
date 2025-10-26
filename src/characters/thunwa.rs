@@ -36,7 +36,11 @@ pub struct Thunwa {
 #[derive(Component)]
 pub struct ThunwaCollider;
 
-pub fn setup_thunwa(mut commands: Commands, asset_server: Res<AssetServer>) {
+pub fn setup_thunwa(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    mut thunwa_health: ResMut<ThunwaHealth>,
+) {
     let aseprite = asset_server.load("characters/thunwa/thunwa_sprite.aseprite");
 
     commands
@@ -72,6 +76,8 @@ pub fn setup_thunwa(mut commands: Commands, asset_server: Res<AssetServer>) {
                 ))
                 .insert(Transform::from_xyz(0.0, -16.0, 0.));
         });
+
+    thunwa_health.current = thunwa_health.max;
 }
 
 pub fn despawn_thunwa(mut commands: Commands, thunwa_query: Query<Entity, With<Thunwa>>) {

@@ -93,7 +93,7 @@ pub fn update_health_ui(
         return;
     }
 
-    if thunwa_health.is_changed() {
+    if thunwa_health.is_changed() && thunwa_health.current < thunwa_health.max {
         // Start flicker when health changes (indicating damage)
         flicker_timer.is_flickering = true;
         flicker_timer.timer.reset();
