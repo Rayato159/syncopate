@@ -70,7 +70,12 @@ pub fn spawn_health_ui(mut commands: Commands) {
                             left: Val::Px(0.0),
                             ..Default::default()
                         },
-                        BackgroundColor(Color::srgba(163. / 255., 220. / 255., 154. / 255., 1.0)),
+                        BackgroundColor(Color::srgba(
+                            99.0 / 255.0,
+                            163.0 / 255.0,
+                            97.0 / 255.0,
+                            1.0,
+                        )),
                     ));
                 });
         });
@@ -120,7 +125,7 @@ pub fn update_health_bar_color(
             // Normal color coding based on health percentage
             // Start color (> 80%), Yellow (50-80%), Red (< 50%)
             if health_percentage > 0.8 {
-                bg_color.0 = Color::srgba(163. / 255., 220. / 255., 154. / 255., 1.0); // Start color
+                bg_color.0 = Color::srgba(99.0 / 255.0, 163.0 / 255.0, 97.0 / 255.0, 1.0); // Start color
             } else if health_percentage > 0.5 {
                 bg_color.0 = Color::srgb(0.8, 0.8, 0.0); // Yellow
             } else {
@@ -151,7 +156,7 @@ pub fn update_health_flicker(
                 // Normal health-based color
                 let health_percentage = thunwa_health.current / thunwa_health.max;
                 if health_percentage > 0.8 {
-                    bg_color.0 = Color::srgba(163. / 255., 220. / 255., 154. / 255., 1.0);
+                    bg_color.0 = Color::srgba(99.0 / 255.0, 163.0 / 255.0, 97.0 / 255.0, 1.0);
                 } else if health_percentage > 0.5 {
                     bg_color.0 = Color::srgb(0.8, 0.8, 0.0);
                 } else {
