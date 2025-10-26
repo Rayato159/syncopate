@@ -1,7 +1,6 @@
 use bevy::{prelude::*, window::WindowMode};
 use bevy_aseprite_ultra::prelude::*;
 use bevy_ecs_tilemap::TilemapPlugin;
-use bevy_fps_counter::FpsCounterPlugin;
 use bevy_inspector_egui::bevy_egui::EguiPlugin;
 use bevy_kira_audio::prelude::*;
 use bevy_light_2d::prelude::*;
@@ -40,6 +39,7 @@ fn main() {
         .insert_resource(GameOptions::default())
         .insert_resource(MainMenuLightFlickerTimer::default())
         .insert_resource(ThunwaHealth::default())
+        .insert_resource(ui::health_ui::HealthFlickerTimer::default())
         .add_plugins((
             DefaultPlugins.set(WindowPlugin {
                 primary_window: Some(Window {
@@ -59,7 +59,7 @@ fn main() {
             Light2dPlugin,
             AudioPlugin,
         ))
-        .add_plugins(FpsCounterPlugin)
+        // .add_plugins(FpsCounterPlugin)
         .add_plugins(EguiPlugin {
             enable_multipass_for_primary_context: true,
         })
@@ -170,6 +170,7 @@ fn main() {
                 thunwa::setup_thunwa,
                 zombie::setup_zombies,
                 camera::player_camera_setup,
+                ui::health_ui::spawn_health_ui,
             )
                 .in_set(GameStartUpSet::Thunwa),
         )
@@ -181,6 +182,7 @@ fn main() {
                 camera::despawn_player_camera,
                 thunwa::despawn_thunwa,
                 zombie::despawn_zombies,
+                ui::health_ui::despawn_health_ui,
             )
                 .in_set(GameUpdateSet::CondoEntering),
         )
@@ -205,7 +207,9 @@ fn main() {
                 zombie::update_zombie_ai,
                 zombie::zombie_attack_system,
                 zombie::update_zombie_animation_direction,
-                zombie::update_player_health_display,
+                ui::health_ui::update_health_ui,
+                ui::health_ui::update_health_bar_color,
+                ui::health_ui::update_health_flicker,
             )
                 .in_set(GameUpdateSet::Zombie)
                 .after(GameStartUpSet::Thunwa)

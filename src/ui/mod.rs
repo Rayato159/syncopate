@@ -1,3 +1,4 @@
+pub mod health_ui;
 pub mod in_game_options_menu;
 pub mod main_menu;
 pub mod options;
